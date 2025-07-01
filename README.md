@@ -1,4 +1,4 @@
-# tams-web
+# timetable-web
 
 ## Project setup
 ```
