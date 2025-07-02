@@ -7,8 +7,23 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
+    redirect: '/login'
+  },
+  {
+    path: '/login',
+    component: () => import('@/views/authentication/Login.vue')
+  },
+  {
+    path: '/register',
+    component: () => import('@/views/authentication/Register.vue')
+  },
+  {
+    path: '/main',
     redirect: '/course-scheduling',
     component: Main,
+    meta: {
+      requireAuth: true
+    },
     children: [
       {
         path: '/course-scheduling',
@@ -40,6 +55,22 @@ const routes = [
 
 const router = new VueRouter({
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requireAuth)) {
+    const isAuthenticated = localStorage.getItem('token')
+    if (!isAuthenticated) {
+      next({
+        path: '/',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router
