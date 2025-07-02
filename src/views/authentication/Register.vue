@@ -4,8 +4,8 @@
       ref="registerForm"
       :model="registerForm"
       :rules="rules"
-      class="registerForm"
-    >
+      class="registerForm" >
+
       <h3 class="registerTitle">Register</h3>
 
       <!-- 用户名输入框 -->
@@ -14,8 +14,7 @@
           v-model="registerForm.username"
           auto-complete="off"
           placeholder="请输入用户名"
-          type="text"
-        >
+          type="text" >
         </el-input>
       </el-form-item>
 
@@ -25,8 +24,7 @@
           v-model="registerForm.password"
           auto-complete="false"
           placeholder="请输入密码"
-          type="password"
-        >
+          type="password" >
         </el-input>
       </el-form-item>
 
@@ -36,8 +34,7 @@
           v-model="registerForm.confirmPassword"
           auto-complete="false"
           placeholder="再次输入密码"
-          type="password"
-        >
+          type="password" >
         </el-input>
       </el-form-item>
 
@@ -46,14 +43,18 @@
         style="width: 100%"
         type="primary"
         @click="submitRegister"
-        :loading="registerLoading"
-      >
+        :loading="registerLoading" >
         立即注册
       </el-button>
 
-      <!-- 已有账号登录 -->
+      <!-- 跳转登录 -->
       <div class="login-link">
-        已有账号？<el-link type="primary" @click="goToLogin">立即登录</el-link>
+        已有账号？
+        <el-link
+          type="primary"
+          @click="goToLogin">
+          立即登录
+        </el-link>
       </div>
     </el-form>
   </div>
@@ -120,15 +121,19 @@ export default {
       this.$refs.registerForm.validate((valid) => {
         if (valid) {
           this.registerLoading = true
+          const { confirmPassword, ...registerData } = this.registerForm
 
-          // 模拟注册请求
-          setTimeout(() => {
-            this.registerLoading = false
-            this.$message.success('注册成功')
-            this.$router.push('/login') // 注册成功后跳转到登录页
-          }, 1500)
-        } else {
-          return false
+          this.$store.dispatch('SaveRegister', registerData)
+            .then(() => {
+              this.$message.success('注册成功')
+              this.$router.push('/login')
+            })
+            .catch(err => {
+              this.$message.error(err.message || '注册失败')
+            })
+            .finally(() => {
+              this.registerLoading = false
+            })
         }
       })
     },

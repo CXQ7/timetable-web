@@ -6,6 +6,7 @@ import classroom from '@/store/classroom'
 import courseScheduling from '@/store/course-scheduling'
 import color from '@/store/color'
 import report from '@/store/report'
+import authentication from './authentication'
 
 Vue.use(Vuex)
 
@@ -17,6 +18,7 @@ export default new Vuex.Store({
   actions: {
   },
   modules: {
+    authentication,
     teacher,
     course,
     classroom,

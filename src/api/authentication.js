@@ -1,8 +1,15 @@
 import { axios } from '@/util/request'
 
-export const getLogin = (data) => {
+export const getUserByUsername = (username) => {
   return axios({
-    url: 'login',
+    url: 'user/username/' + username,
+    method: 'get'
+  })
+}
+
+export const saveRegister = (data) => {
+  return axios({
+    url: 'user/register',
     method: 'post',
     data
   })
