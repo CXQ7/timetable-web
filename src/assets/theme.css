@@ -1,0 +1,74 @@
+/* theme.css */
+
+/* 默认蓝白主题 */
+:root {
+    --primary-color: #00448a;
+    --background-color: #ffffff;
+    --text-color: #152b47;
+    --card-bg: #f9f9f9;
+}
+
+/* 暗色主题 */
+.theme-dark {
+    --primary-color: #5e5e5e;
+    --background-color: #3a3a3a;
+    --text-color: #b6b6b6;
+    --card-bg: #1e1e1e;
+}
+
+/* 马卡龙主题 */
+.theme-macaron {
+    --primary-color: #ffb6b9;
+    --background-color: #fff0f5;
+    --text-color: #6b4e71;
+    --card-bg: #ffe3e3;
+}
+
+/* 清新绿主题 */
+.theme-fresh-green {
+    --primary-color: #28c76f;
+    --background-color: #f0fff4;
+    --text-color: #2e5947;
+    --card-bg: #e1f7e5;
+}
+
+/* 复古黄主题 */
+.theme-retro-yellow {
+    --primary-color: #c29f42;
+    --background-color: #fdf6e3;
+    --text-color: #5a4b2e;
+    --card-bg: #f3ecd4;
+}
+
+/* 基础样式绑定变量 */
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: all 0.3s;
+}
+
+.el-button--primary,
+.el-button--primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.el-card {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.fc-event {
+    background-color: var(--primary-color) !important;
+    border: none !important;
+    color: #fff !important;
+    font-size: 13px;
+    border-radius: 6px;
+    padding: 2px 4px;
+}
+
+.el-header,
+.el-footer {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}

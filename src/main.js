@@ -4,6 +4,7 @@ import router from './router'
 import store from './store'
 import './plugins/element.js'
 import './assets/global.css'
+import './assets/theme.css'
 import consts from '@/util/consts'
 require('echarts/lib/echarts')
 require('echarts/lib/chart/bar')

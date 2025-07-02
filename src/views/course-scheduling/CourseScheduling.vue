@@ -27,6 +27,18 @@
         <el-col :span="4">
           <el-button type="primary" size="small" style="float: right" @click="exportCourseSchedulingVisible=true">导出</el-button>
           <el-button type="primary" size="small" style="float: right; margin-right: 10px;" @click="saveBatchCourseSchedulingVisible=true">排课</el-button>
+          <el-dropdown>
+            <el-button type="primary" size="small" style="float: right; margin-right: 10px;">
+              主题风格<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="switchTheme('default')">简约蓝白</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('theme-macaron')">马卡龙</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('theme-dark')">暗色风</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('theme-fresh-green')">清新绿</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('theme-retro-yellow')">复古黄</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </el-col>
       </el-row>
       <FullCalendar ref="fullCalendar" :options="calendarOptions"></FullCalendar>
@@ -88,6 +100,7 @@ export default {
       id: 0,
       currentDate: '',
       currentAttendTime: '',
+      currentTheme: localStorage.getItem('theme') || 'default',
       calendarOptions: {
         plugins: [dayGridPlugin, listPlugin, timeGridPlugin, interactionPlugin],
         initialView: 'timeGridWeek',
@@ -323,10 +336,22 @@ export default {
       }).catch(() => {
         this.search()
       })
+    },
+    switchTheme (themeClass) {
+      this.currentTheme = themeClass
+      localStorage.setItem('theme', themeClass)
+      this.applyTheme(themeClass)
+    },
+    applyTheme (themeClass) {
+      document.body.className = ''
+      if (themeClass && themeClass !== 'default') {
+        document.body.classList.add(themeClass)
+      }
     }
   },
   mounted () {
     this.init()
+    this.applyTheme(this.currentTheme)
   }
 }
 </script>
