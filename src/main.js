@@ -8,9 +8,6 @@ import './assets/global.css'
 import './assets/theme.css'
 import consts from '@/util/consts'
 
-if (process.env.NODE_ENV === 'development') {
-  require('./mock') // 引入 mock/index.js 文件（你现在已有）
-}
 require('echarts/lib/echarts')
 require('echarts/lib/chart/bar')
 // require('echarts/lib/component/tooltip')
