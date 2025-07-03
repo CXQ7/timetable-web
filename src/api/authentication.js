@@ -14,3 +14,11 @@ export const saveRegister = (data) => {
     data
   })
 }
+
+export const updateUserInfo = (data) => {
+  return axios({
+    url: 'user/update',
+    method: 'post',
+    data
+  })
+}

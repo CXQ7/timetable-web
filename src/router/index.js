@@ -52,6 +52,10 @@ const routes = [
       {
         path: '/course-reminder',
         component: () => import('@/views/course-reminder/CourseReminder.vue')
+      },
+      {
+        path: '/settings',
+        component: () => import('@/views/settings/Settings.vue')
       }
     ]
   }

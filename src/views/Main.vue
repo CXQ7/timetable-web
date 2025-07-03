@@ -1,20 +1,25 @@
 <template>
   <el-container>
     <el-aside width="100px">
-      <el-menu
-        router
-        @select="handleSelect">
-        <el-menu-item v-for="item in navData"
-                      :key="item.code"
-                      :index="item.code" :route="item.path">
-          <span>{{item.name}}</span>
-          <el-badge v-if="item.code==='07' && reminderDot" is-dot style="margin-left: 4px;">
+      <el-menu router @select="handleSelect">
+        <el-menu-item
+          v-for="item in navData"
+          :key="item.code"
+          :index="item.code"
+          :route="item.path"
+        >
+          <span>{{ item.name }}</span>
+          <el-badge
+            v-if="item.code === '07' && reminderDot"
+            is-dot
+            style="margin-left: 4px"
+          >
           </el-badge>
         </el-menu-item>
       </el-menu>
     </el-aside>
-    <el-main style="padding: 10px 20px;">
-      <router-view/>
+    <el-main style="padding: 10px 20px">
+      <router-view />
     </el-main>
   </el-container>
 </template>
@@ -24,8 +29,7 @@ import { mapState, mapActions } from 'vuex'
 
 export default {
   name: 'Main',
-  components: {
-  },
+  components: {},
   data () {
     return {
       navData: [
@@ -63,6 +67,11 @@ export default {
           code: '07',
           path: '/course-reminder',
           name: '课程提醒'
+        },
+        {
+          code: '08',
+          path: '/settings',
+          name: '设置'
         }
       ],
       pollInterval: null, // 轮询定时器
@@ -71,18 +80,14 @@ export default {
   },
   computed: {
     ...mapState({
-      reminderDot: state => state.courseReminder.reminderDot,
-      userInfo: state => state.authentication.userInfo
+      reminderDot: (state) => state.courseReminder.reminderDot,
+      userInfo: (state) => state.authentication.userInfo
     })
   },
   methods: {
-    ...mapActions([
-      'GetReminderSettings',
-      'GetUpcomingReminders'
-    ]),
+    ...mapActions(['GetReminderSettings', 'GetUpcomingReminders']),
 
-    handleSelect (key, keyPath) {
-    },
+    handleSelect (key, keyPath) {},
 
     startReminderPolling () {
       // 每分钟检查一次
@@ -93,9 +98,9 @@ export default {
 
     checkReminderDot () {
       // 先判断是否开启了站内提醒
-      this.GetReminderSettings().then(settings => {
+      this.GetReminderSettings().then((settings) => {
         if (settings.inSite) {
-          this.GetUpcomingReminders({ limit: 1 }).then(reminders => {
+          this.GetUpcomingReminders({ limit: 1 }).then((reminders) => {
             if (reminders && reminders.length > 0) {
               this.$store.commit('SET_REMINDER_DOT', true)
             }
@@ -129,6 +134,4 @@ export default {
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -30,7 +30,7 @@ const authentication = {
           resolve(userInfo)
         }
         Api.getUserByUsername(username)
-          .then(res => {
+          .then((res) => {
             if (res.data && res.data.password === password) {
               commit('SET_USER_INFO', res.data)
               commit('SET_TOKEN', '模拟token值')
@@ -39,7 +39,7 @@ const authentication = {
               reject(new Error('用户名或密码错误'))
             }
           })
-          .catch(err => {
+          .catch((err) => {
             reject(err)
           })
       })
@@ -54,11 +54,11 @@ const authentication = {
     GetUserByUsername ({ commit }, username) {
       return new Promise((resolve, reject) => {
         Api.getUserByUsername(username)
-          .then(res => {
+          .then((res) => {
             commit('SET_USER_INFO', res.data)
             resolve(res.data)
           })
-          .catch(err => {
+          .catch((err) => {
             reject(err)
           })
       })
@@ -66,12 +66,24 @@ const authentication = {
     SaveRegister ({ commit }, data) {
       return new Promise((resolve, reject) => {
         Api.saveRegister(data)
-          .then(res => {
+          .then((res) => {
             commit('SET_USER_INFO', res.data.userInfo)
             commit('SET_TOKEN', res.data.token)
             resolve(res.data)
           })
-          .catch(err => {
+          .catch((err) => {
+            reject(err)
+          })
+      })
+    },
+    UpdateUserInfo ({ commit }, data) {
+      return new Promise((resolve, reject) => {
+        Api.updateUserInfo(data)
+          .then((res) => {
+            commit('SET_USER_INFO', res.data)
+            resolve(res.data)
+          })
+          .catch((err) => {
             reject(err)
           })
       })
