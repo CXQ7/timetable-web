@@ -53,6 +53,11 @@ export default {
           code: '06',
           path: '/report',
           name: '报表'
+        },
+        {
+          code: '07',
+          path: '/course-reminder',
+          name: '课程提醒'
         }
       ],
       currentNavName: ''
