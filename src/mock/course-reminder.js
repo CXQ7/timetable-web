@@ -1,5 +1,4 @@
-// ❗不要从 'axios' 直接引入，而是引入你封装的 axios 实例
-import { axios } from '../util/request' // ✅ 用花括号
+import { axios } from '../util/request'
 import MockAdapter from 'axios-mock-adapter'
 
 const mock = new MockAdapter(axios, { delayResponse: 500 })
