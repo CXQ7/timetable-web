@@ -1,33 +1,61 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="rules" class="loginForm">
+    <el-form
+      ref="loginForm"
+      :model="loginForm"
+      :rules="rules"
+      class="loginForm">
+
       <h3 class="loginTitle">Login</h3>
+
       <!--用户名输入框-->
       <el-form-item prop="username">
-        <el-input v-model="loginForm.username"
-                  auto-complete="false"
-                  placeholder="请输入用户名"
-                  type="text">
+        <el-input
+          v-model="loginForm.username"
+          auto-complete="false"
+          placeholder="请输入用户名"
+          type="text">
         </el-input>
       </el-form-item>
+
       <!--密码输入框-->
       <el-form-item prop="password">
-        <el-input v-model="loginForm.password"
-                  auto-complete="false"
-                  placeholder="请输入密码"
-                  type="password"
-                  show-password>
+        <el-input
+          v-model="loginForm.password"
+          auto-complete="false"
+          placeholder="请输入密码"
+          type="password"
+          show-password>
         </el-input>
       </el-form-item>
+
       <!--功能区-->
       <div class="action-area">
-        <el-checkbox v-model="checked" class="Remember">记住我</el-checkbox>
+        <el-checkbox
+          v-model="checked"
+          class="Remember">
+          记住我
+        </el-checkbox>
+
+        <!-- 跳转注册 -->
         <div class="register-container">
           <span class="register-text">没有账号？</span>
-          <el-link type="primary" @click="goToRegister">立即注册</el-link>
+          <el-link
+            type="primary"
+            @click="goToRegister">
+            立即注册
+          </el-link>
         </div>
       </div>
-      <el-button style="width: 100%" type="primary" @click="submitLogin">登录</el-button>
+
+      <!-- 登录按钮 -->
+      <el-button
+        style="width: 100%"
+        type="primary"
+        @click="submitLogin"
+        :loading="loginLoading">
+        登录
+      </el-button>
     </el-form>
   </div>
 </template>
@@ -37,6 +65,7 @@ export default {
   name: 'Login',
   data () {
     return {
+      loginLoading: false, // 注册按钮加载状态
       captchaUrl: '',
       loginForm: {
         username: 'admin',
@@ -54,15 +83,22 @@ export default {
     submitLogin () {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
-          if (this.loginForm.username === 'admin' && this.loginForm.password === '123456') {
-            localStorage.setItem('token', '模拟token值')
-            this.$router.push('/main')
-          } else {
-            this.$message.error('用户名或密码错误')
-          }
+          this.loginLoading = true
+          this.$store.dispatch('Login', this.loginForm)
+            .then(() => {
+              if (this.checked) {
+                localStorage.setItem('rememberMe', 'true')
+              }
+              this.$router.push('/main')
+            })
+            .catch(err => {
+              this.$message.error(err.message || '登录失败')
+            })
+            .finally(() => {
+              this.loginLoading = false
+            })
         } else {
           this.$message.error('请输入所有字段')
-          return false
         }
       })
     },
@@ -106,7 +142,7 @@ export default {
   padding: 20px;
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid #eaeaea;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
 }
 
 .loginTitle {
