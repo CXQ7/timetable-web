@@ -7,7 +7,7 @@ import courseScheduling from '@/store/course-scheduling'
 import color from '@/store/color'
 import report from '@/store/report'
 import authentication from './authentication'
-
+import courseReminder from '@/store/course-reminder'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -24,6 +24,7 @@ export default new Vuex.Store({
     classroom,
     courseScheduling,
     color,
-    report
+    report,
+    courseReminder
   }
 })

@@ -1,0 +1,5 @@
+node_modules/
+/src/mock/
+.vscode
+main.js
+

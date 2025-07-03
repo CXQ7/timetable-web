@@ -48,6 +48,10 @@ const routes = [
       {
         path: '/report',
         component: () => import('@/views/report/Report.vue')
+      },
+      {
+        path: '/course-reminder',
+        component: () => import('@/views/course-reminder/CourseReminder.vue')
       }
     ]
   }
