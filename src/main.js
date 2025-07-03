@@ -7,7 +7,9 @@ import './plugins/element.js'
 import './assets/global.css'
 import './assets/theme.css'
 import consts from '@/util/consts'
-
+// if (process.env.NODE_ENV === 'development') {
+//   require('./mock')
+// }
 require('echarts/lib/echarts')
 require('echarts/lib/chart/bar')
 // require('echarts/lib/component/tooltip')

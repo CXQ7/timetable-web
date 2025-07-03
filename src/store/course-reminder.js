@@ -2,8 +2,12 @@ import * as Api from '@/api/course-reminder'
 
 const courseReminder = {
   state: {
+    reminderDot: false // 红点状态
   },
   mutations: {
+    SET_REMINDER_DOT (state, val) {
+      state.reminderDot = val
+    }
   },
   actions: {
     // 拉取用户的提醒设置
