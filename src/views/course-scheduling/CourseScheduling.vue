@@ -12,7 +12,11 @@
             </el-form-item>
             <el-form-item label="课程：">
               <el-select ref="courseSelect" clearable multiple size="mini" style="width: 250px;" v-model="params.courseIdList" @change="search">
-                <el-option v-for="item in courseData" :key="item.id" :label="item.name" :value="item.id">
+                <el-option v-for="item in courseData" :key="item.id" :value="item.id">
+                  <span>{{ item.name }}</span>
+                  <span style="float: right; color: #8492a6; font-size: 11px;">
+                    {{ (item.courseType === 1 || item.courseType === '1') ? '必修' : (item.courseType === 2 || item.courseType === '2') ? '选修' : '必修' }}
+                  </span>
                 </el-option>
               </el-select>
             </el-form-item>
@@ -25,54 +29,42 @@
           </el-form>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" size="small" class="animated-button" style="float: right" @click="handleExportClick">导出</el-button>
-          <el-button type="primary" size="small" class="animated-button" style="float: right; margin-right: 10px;" @click="handleBatchSchedulingClick">排课</el-button>
+          <el-button type="primary" size="small" style="float: right" @click="exportCourseSchedulingVisible=true">导出</el-button>
+          <el-button type="primary" size="small" style="float: right; margin-right: 10px;" @click="saveBatchCourseSchedulingVisible=true">新增课程</el-button>
           <el-dropdown>
-            <el-button type="primary" size="small" class="animated-button" style="float: right; margin-right: 10px;">
+            <el-button type="primary" size="small" style="float: right; margin-right: 10px;">
               主题风格<i class="el-icon-arrow-down el-icon--right"></i>
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item class="animated-dropdown-item" @click.native="switchTheme('default')">简约蓝白</el-dropdown-item>
-              <el-dropdown-item class="animated-dropdown-item" @click.native="switchTheme('theme-macaron')">马卡龙</el-dropdown-item>
-              <el-dropdown-item class="animated-dropdown-item" @click.native="switchTheme('theme-dark')">暗色风</el-dropdown-item>
-              <el-dropdown-item class="animated-dropdown-item" @click.native="switchTheme('theme-fresh-green')">清新绿</el-dropdown-item>
-              <el-dropdown-item class="animated-dropdown-item" @click.native="switchTheme('theme-retro-yellow')">复古黄</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('default')">简约蓝白</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('theme-macaron')">马卡龙</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('theme-dark')">暗色风</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('theme-fresh-green')">清新绿</el-dropdown-item>
+              <el-dropdown-item @click.native="switchTheme('theme-retro-yellow')">复古黄</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </el-col>
       </el-row>
       <FullCalendar ref="fullCalendar" :options="calendarOptions"></FullCalendar>
     </div>
-    <transition name="fade" mode="out-in">
-      <SaveCourseScheduling v-if="saveCourseSchedulingVisible"
-                            :visible="saveCourseSchedulingVisible"
-                            :date="currentDate"
-                            :attendTime="currentAttendTime"
-                            @on-close="saveCourseSchedulingVisible=false"
-                            @on-success="saveSuccess">
-      </SaveCourseScheduling>
-    </transition>
-    <transition name="fade" mode="out-in">
-      <ViewCourseScheduling v-if="viewCourseSchedulingVisible"
-                            :visible="viewCourseSchedulingVisible"
-                            :id="id"
-                            @on-success="updateSuccess"
-                            @on-close="viewCourseSchedulingVisible=false"></ViewCourseScheduling>
-    </transition>
-    <transition name="fade" mode="out-in">
-      <BatchSaveCourseScheduling v-if="saveBatchCourseSchedulingVisible"
-                                 :visible="saveBatchCourseSchedulingVisible"
-                                 @on-close="saveBatchCourseSchedulingVisible=false"
-                                 @on-success="saveBatchSuccess">
-      </BatchSaveCourseScheduling>
-    </transition>
-    <transition name="fade" mode="out-in">
-      <ExportCourseScheduling v-if="exportCourseSchedulingVisible"
-                              :visible="exportCourseSchedulingVisible"
-                              @on-close="exportCourseSchedulingVisible=false"
-                              @on-success="exportCourseSchedulingVisible=false">
-      </ExportCourseScheduling>
-    </transition>
+    <SaveCourseScheduling :visible="saveCourseSchedulingVisible"
+                          :date="currentDate"
+                          :attendTime="currentAttendTime"
+                          @on-close="saveCourseSchedulingVisible=false"
+                          @on-success="saveSuccess">
+    </SaveCourseScheduling>
+    <ViewCourseScheduling :visible="viewCourseSchedulingVisible"
+                          :id="id"
+                          @on-success="updateSuccess"
+                          @on-close="viewCourseSchedulingVisible=false"></ViewCourseScheduling>
+    <BatchSaveCourseScheduling :visible="saveBatchCourseSchedulingVisible"
+                               @on-close="saveBatchCourseSchedulingVisible=false"
+                               @on-success="saveBatchSuccess">
+    </BatchSaveCourseScheduling>
+    <ExportCourseScheduling :visible="exportCourseSchedulingVisible"
+                            @on-close="exportCourseSchedulingVisible=false"
+                            @on-success="exportCourseSchedulingVisible=false">
+    </ExportCourseScheduling>
   </div>
 </template>
 <script>
@@ -113,12 +105,7 @@ export default {
       currentDate: '',
       currentAttendTime: '',
       currentTheme: localStorage.getItem('theme') || 'default',
-      calendarEvents: []
-    }
-  },
-  computed: {
-    calendarOptions () {
-      return {
+      calendarOptions: {
         plugins: [dayGridPlugin, listPlugin, timeGridPlugin, interactionPlugin],
         initialView: 'timeGridWeek',
         locale: 'zh',
@@ -147,15 +134,9 @@ export default {
         // dayMaxEventRows: true,
         // 是否可拖拽
         editable: true,
-        events: this.calendarEvents,
-        customButtons: {
-          addCourse: {
-            text: '新增课程',
-            click: this.handleAddCourseClick
-          }
-        },
+        events: [],
         headerToolbar: {
-          start: 'addCourse prev,next today',
+          start: 'prev,next today',
           center: 'title',
           end: 'timeGridDay,timeGridWeek,dayGridMonth'
         },
@@ -229,9 +210,9 @@ export default {
       this.params.endDate = moment(this.$refs.fullCalendar.getApi().view.currentEnd).endOf('month').format('YYYY-MM-DD')
       this.GetCourseSchedulingList(this.params).then(res => {
         if (res) {
-          this.calendarEvents = []
+          this.calendarOptions.events = []
           res.forEach(item => {
-            this.calendarEvents.push({
+            this.calendarOptions.events.push({
               id: item.id,
               title: item.courseName + ' ' + item.classroomName + ' ' + item.teacherName,
               start: item.date + ' ' + item.attendTime,
@@ -251,17 +232,14 @@ export default {
       })
     },
     saveSuccess () {
-      this.$message.success('课程添加成功！')
       this.search()
       this.saveCourseSchedulingVisible = false
     },
     saveBatchSuccess () {
-      this.$message.success('批量排课成功！')
       this.search()
       this.saveBatchCourseSchedulingVisible = false
     },
     updateSuccess () {
-      this.$message.success('课程更新成功！')
       this.search()
       this.viewCourseSchedulingVisible = false
     },
@@ -311,26 +289,6 @@ export default {
         this.currentAttendTime = infoDate.format('HH:mm')
       }
       this.saveCourseSchedulingVisible = true
-    },
-    handleAddCourseClick () {
-      // 设置默认日期为今天
-      this.currentDate = moment().format('YYYY-MM-DD')
-      // 设置默认时间为上午8点
-      this.currentAttendTime = '08:00'
-      this.saveCourseSchedulingVisible = true
-    },
-
-    handleExportClick () {
-      this.$message.info('正在准备导出...')
-      setTimeout(() => {
-        this.exportCourseSchedulingVisible = true
-      }, 300)
-    },
-    handleBatchSchedulingClick () {
-      this.$message.info('正在打开排课界面...')
-      setTimeout(() => {
-        this.saveBatchCourseSchedulingVisible = true
-      }, 300)
     },
     eventDragStart (info) {
       console.log('eventDragStart', info)
@@ -386,25 +344,7 @@ export default {
     switchTheme (themeClass) {
       this.currentTheme = themeClass
       localStorage.setItem('theme', themeClass)
-
-      // 添加切换动画效果
-      document.body.style.transition = 'all 0.3s ease'
-
       this.applyTheme(themeClass)
-
-      // 显示主题切换成功的提示
-      const themeNames = {
-        default: '简约蓝白',
-        'theme-macaron': '马卡龙',
-        'theme-dark': '暗色风',
-        'theme-fresh-green': '清新绿',
-        'theme-retro-yellow': '复古黄'
-      }
-      this.$message.success(`已切换到${themeNames[themeClass]}主题`)
-      // 移除过渡效果
-      setTimeout(() => {
-        document.body.style.transition = ''
-      }, 300)
     },
     applyTheme (themeClass) {
       document.body.className = ''
@@ -419,132 +359,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-/* 按钮动画效果 */
-.animated-button {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  transform: translateZ(0);
-}
-
-.animated-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.animated-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* 按钮点击涟漪效果 */
-.animated-button::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: all 0.3s ease;
-}
-
-.animated-button:active::after {
-  width: 120%;
-  height: 120%;
-}
-
-/* 下拉菜单项动画效果 */
-.animated-dropdown-item {
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.animated-dropdown-item:hover {
-  background: linear-gradient(90deg, #409EFF, #66B1FF);
-  color: white;
-  transform: translateX(5px);
-}
-
-.animated-dropdown-item:active {
-  transform: translateX(2px);
-}
-
-/* 弹窗过渡动画 */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
-/* 日历事件悬停效果 */
-.fc-event:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
-}
-
-/* 日历按钮悬停效果 */
-.fc-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.fc-button:active {
-  transform: translateY(0);
-}
-
-/* 加载动画效果 */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-.pulse-animation {
-  animation: pulse 1s infinite;
-}
-/* 成功动画效果 */
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-.bounce-animation {
-  animation: bounce 0.6s ease;
-}
-/* 主题切换过渡效果 */
-body {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-/* 选择器悬停效果 */
-.el-select:hover {
-  transform: translateY(-1px);
-  transition: all 0.2s ease;
-}
-/* 表单项标签动画效果 */
-.el-form-item__label {
-  transition: all 0.2s ease;
-}
-.el-form-item:hover .el-form-item__label {
-  color: #409EFF;
-  transform: translateX(2px);
-}
-/* 响应式动画 */
-@media (max-width: 768px) {
-  .animated-button:hover {
-    transform: none;
-    box-shadow: none;
-  }
-  .animated-dropdown-item:hover {
-    transform: none;
-  }
-}
-</style>

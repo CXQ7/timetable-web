@@ -11,6 +11,12 @@
       <el-form-item label="课程时长" prop="duration">
         <el-input-number v-model="form.duration" :step="$consts.COURSE_DURATION_STEP_MINUTE" :min="0" :max="360" class="tams-form-item"></el-input-number>
       </el-form-item>
+      <el-form-item label="课程类型" prop="courseType">
+        <el-radio-group v-model="form.courseType" class="tams-form-item">
+          <el-radio :label="1">必修</el-radio>
+          <el-radio :label="2">选修</el-radio>
+        </el-radio-group>
+      </el-form-item>
       <el-form-item label="背景颜色" prop="backgroundColor">
         <el-color-picker v-model="form.backgroundColor" :predefine="predefineColors">
         </el-color-picker>
@@ -49,6 +55,13 @@ export default {
             message: '名称不能为空',
             trigger: 'blur'
           }
+        ],
+        courseType: [
+          {
+            required: true,
+            message: '课程类型不能为空',
+            trigger: 'change'
+          }
         ]
       },
       submitBtnLoading: false
@@ -75,6 +88,11 @@ export default {
     search () {
       this.GetCourseById(this.id).then(res => {
         this.form = res
+        // 确保courseType有默认值
+        if (!this.form.courseType) {
+          this.form.courseType = 1
+        }
+        console.log('加载的课程数据：', this.form)
       }).catch(() => {
       })
     },

@@ -1,30 +1,44 @@
 <template>
-  <el-dialog title="新增" width="790px"
-             :close-on-click-modal="false"
-             :close-on-press-escape="false"
-             :visible.sync="dialogVisible"
-             :before-close="handleClose" >
+  <div>
+    <el-dialog title="新增" width="790px"
+               :close-on-click-modal="false"
+               :close-on-press-escape="false"
+               :visible.sync="dialogVisible"
+               :before-close="handleClose" >
     <el-form ref="form" :model="form" :rules="rules" inline label-width="80px" class="tams-form-container">
       <el-form-item label="日期" prop="date">
         <el-input v-model="form.date" class="tams-form-item" disabled></el-input>
       </el-form-item>
       <br/>
       <el-form-item label="教室" prop="classroomId">
-        <el-select v-model="form.classroomId" class="tams-form-item">
+        <el-select v-model="form.classroomId" class="tams-form-item" @change="classroomChange" placeholder="请选择教室">
           <el-option v-for="item in classroomData" :key="item.id" :label="item.name" :value="item.id">
+          </el-option>
+          <el-option key="add-new-classroom" :value="'add-new-classroom'" style="color: #409EFF;">
+            <i class="el-icon-plus"></i> 新增教室
           </el-option>
         </el-select>
       </el-form-item>
       <br/>
       <el-form-item label="课程" prop="courseId">
-        <el-select v-model="currentCourse" value-key="id" class="tams-form-item" @change="courseChange">
-          <el-option v-for="item in courseData" :key="item.id" :label="item.name" :value="item">
+        <el-select v-model="currentCourse" value-key="id" class="tams-form-item" @change="courseChange" placeholder="请选择课程">
+          <el-option v-for="item in courseData" :key="item.id" :value="item">
+            <span>{{ item.name }}</span>
+            <span style="float: right; color: #8492a6; font-size: 12px;">
+              {{ (item.courseType === 1 || item.courseType === '1') ? '必修' : (item.courseType === 2 || item.courseType === '2') ? '选修' : '必修' }}
+            </span>
+          </el-option>
+          <el-option key="add-new-course" :value="'add-new-course'" style="color: #409EFF;">
+            <i class="el-icon-plus"></i> 新增课程
           </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="老师" prop="teacherId">
-        <el-select v-model="form.teacherId" class="tams-form-item">
+        <el-select v-model="form.teacherId" class="tams-form-item" @change="teacherChange" placeholder="请选择老师">
           <el-option v-for="item in teacherData" :key="item.id" :label="item.name" :value="item.id">
+          </el-option>
+          <el-option key="add-new-teacher" :value="'add-new-teacher'" style="color: #409EFF;">
+            <i class="el-icon-plus"></i> 新增老师
           </el-option>
         </el-select>
       </el-form-item>
@@ -59,14 +73,41 @@
       <el-button type="primary" :loading="submitBtnLoading" @click="submit">确定</el-button>
     </div>
   </el-dialog>
+
+  <!-- 新增教室对话框 -->
+  <SaveClassroom :visible="saveClassroomVisible"
+                 @on-close="saveClassroomVisible=false"
+                 @on-success="saveClassroomSuccess">
+  </SaveClassroom>
+
+  <!-- 新增课程对话框 -->
+  <SaveCourse :visible="saveCourseVisible"
+              @on-close="saveCourseVisible=false"
+              @on-success="saveCourseSuccess">
+  </SaveCourse>
+
+  <!-- 新增老师对话框 -->
+  <SaveTeacher :visible="saveTeacherVisible"
+               @on-close="saveTeacherVisible=false"
+               @on-success="saveTeacherSuccess">
+  </SaveTeacher>
+  </div>
 </template>
 
 <script>
 import moment from 'moment'
 import { mapActions } from 'vuex'
+import SaveClassroom from '@/views/classroom/SaveClassroom'
+import SaveCourse from '@/views/course/SaveCourse'
+import SaveTeacher from '@/views/teacher/SaveTeacher'
 
 export default {
   name: 'SaveCourseScheduling',
+  components: {
+    SaveClassroom,
+    SaveCourse,
+    SaveTeacher
+  },
   props: {
     visible: {
       type: Boolean
@@ -81,7 +122,7 @@ export default {
       courseData: [],
       teacherData: [],
       form: {},
-      currentCourse: {},
+      currentCourse: null,
       courseDuration: 0,
       attendTimeSelectKey: new Date().getTime(),
       pickerOptions: {
@@ -133,7 +174,10 @@ export default {
           }
         ]
       },
-      submitBtnLoading: false
+      submitBtnLoading: false,
+      saveClassroomVisible: false,
+      saveCourseVisible: false,
+      saveTeacherVisible: false
     }
   },
   methods: {
@@ -151,6 +195,7 @@ export default {
       this.GetCourseRefList().then(res => {
         if (res) {
           this.courseData = res
+          console.log('获取的课程数据：', res)
         }
       }).catch(() => {
       })
@@ -165,7 +210,7 @@ export default {
       this.$refs.form.resetFields()
       this.form = {}
       this.courseDuration = 0
-      this.currentCourse = {}
+      this.currentCourse = null
       this.classroomData = []
       this.courseData = []
       this.teacherData = []
@@ -200,18 +245,87 @@ export default {
       })
     },
     courseChange (val) {
-      this.form.courseId = val.id
-      if (val.duration && val.duration > 0) {
-        this.courseDuration = val.duration
-        if (this.form.attendTime) {
-          this.$set(this.form, 'finishTime', moment(this.form.attendTime, 'HH:mm').add(this.courseDuration, 'm').format('HH:mm'))
+      if (val === 'add-new-course') {
+        this.saveCourseVisible = true
+        this.currentCourse = null
+      } else {
+        this.form.courseId = val.id
+        if (val.duration && val.duration > 0) {
+          this.courseDuration = val.duration
+          if (this.form.attendTime) {
+            this.$set(this.form, 'finishTime', moment(this.form.attendTime, 'HH:mm').add(this.courseDuration, 'm').format('HH:mm'))
+          }
         }
+      }
+    },
+    classroomChange (val) {
+      if (val === 'add-new-classroom') {
+        this.saveClassroomVisible = true
+        this.form.classroomId = null
+      }
+    },
+    teacherChange (val) {
+      if (val === 'add-new-teacher') {
+        this.saveTeacherVisible = true
+        this.form.teacherId = null
       }
     },
     calcFinishTime () {
       if (this.form.attendTime) {
         this.$set(this.form, 'finishTime', moment(this.form.attendTime, 'HH:mm').add(this.courseDuration, 'm').format('HH:mm'))
       }
+    },
+    saveClassroomSuccess (data) {
+      this.saveClassroomVisible = false
+      // 刷新教室列表
+      this.GetClassroomRefList().then(res => {
+        if (res) {
+          this.classroomData = res
+          // 自动选中新创建的教室
+          if (data && data.id) {
+            this.form.classroomId = data.id
+          }
+        }
+      }).catch(() => {
+      })
+    },
+    saveCourseSuccess (data) {
+      this.saveCourseVisible = false
+      // 刷新课程列表
+      this.GetCourseRefList().then(res => {
+        if (res) {
+          this.courseData = res
+          // 自动选中新创建的课程
+          if (data && data.id) {
+            const newCourse = res.find(item => item.id === data.id)
+            if (newCourse) {
+              this.currentCourse = newCourse
+              this.form.courseId = newCourse.id
+              if (newCourse.duration && newCourse.duration > 0) {
+                this.courseDuration = newCourse.duration
+                if (this.form.attendTime) {
+                  this.$set(this.form, 'finishTime', moment(this.form.attendTime, 'HH:mm').add(this.courseDuration, 'm').format('HH:mm'))
+                }
+              }
+            }
+          }
+        }
+      }).catch(() => {
+      })
+    },
+    saveTeacherSuccess (data) {
+      this.saveTeacherVisible = false
+      // 刷新老师列表
+      this.GetTeacherRefList().then(res => {
+        if (res) {
+          this.teacherData = res
+          // 自动选中新创建的老师
+          if (data && data.id) {
+            this.form.teacherId = data.id
+          }
+        }
+      }).catch(() => {
+      })
     }
   },
   watch: {

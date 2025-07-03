@@ -20,6 +20,13 @@
         <el-table-column type="index" label="序号" width="50"></el-table-column>
         <el-table-column prop="name" label="名称" width="200"></el-table-column>
         <el-table-column prop="duration" label="时长" width="100"></el-table-column>
+        <el-table-column label="课程类型" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="(scope.row.courseType === 1 || scope.row.courseType === '1') ? 'success' : 'info'" size="mini">
+              {{ (scope.row.courseType === 1 || scope.row.courseType === '1') ? '必修' : (scope.row.courseType === 2 || scope.row.courseType === '2') ? '选修' : '必修' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="背景颜色">
           <template slot-scope="scope">
             <div v-if="scope.row.backgroundColor" :style="{height: '23px', width: '100%', borderRadius: '5px', backgroundColor: scope.row.backgroundColor}"></div>
