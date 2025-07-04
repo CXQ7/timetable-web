@@ -61,6 +61,17 @@ const courseScheduling = {
           })
       })
     },
+    ImportCourseScheduling ({ commit }, data) {
+      return new Promise((resolve, reject) => {
+        Api.importCourseScheduling(data)
+          .then(res => {
+            resolve(res.data)
+          })
+          .catch(err => {
+            reject(err)
+          })
+      })
+    },
     UpdateCourseSchedulingById ({ commit }, { id, data }) {
       return new Promise((resolve, reject) => {
         Api.updateCourseSchedulingById(id, data)

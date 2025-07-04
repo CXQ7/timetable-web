@@ -39,6 +39,14 @@ export const batchSaveCourseScheduling = (data) => {
   })
 }
 
+export const importCourseScheduling = (data) => {
+  return axios({
+    url: 'course-scheduling/import',
+    method: 'post',
+    data
+  })
+}
+
 export const updateCourseSchedulingById = (id, data) => {
   return axios({
     url: 'course-scheduling/' + id,
