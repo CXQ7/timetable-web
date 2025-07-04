@@ -115,6 +115,7 @@ export default {
       currentDate: '',
       currentAttendTime: '',
       currentTheme: localStorage.getItem('theme') || 'default',
+      searchTimeout: null,
       calendarOptions: {
         plugins: [dayGridPlugin, listPlugin, timeGridPlugin, interactionPlugin],
         initialView: 'timeGridWeek',
@@ -213,33 +214,59 @@ export default {
         }
       }).catch(() => {
       })
-      this.search()
+      // 延迟搜索，确保FullCalendar已经完全初始化
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.search()
+        }, 200)
+      })
     },
     search () {
-      this.params.startDate = moment(this.$refs.fullCalendar.getApi().view.currentStart).format('YYYY-MM-DD')
-      this.params.endDate = moment(this.$refs.fullCalendar.getApi().view.currentEnd).endOf('month').format('YYYY-MM-DD')
-      this.GetCourseSchedulingList(this.params).then(res => {
-        if (res) {
-          this.calendarOptions.events = []
-          res.forEach(item => {
-            this.calendarOptions.events.push({
+      // 检查FullCalendar是否已经初始化
+      if (!this.$refs.fullCalendar || !this.$refs.fullCalendar.getApi) {
+        return
+      }
+
+      try {
+        const calendarApi = this.$refs.fullCalendar.getApi()
+        this.params.startDate = moment(calendarApi.view.currentStart).format('YYYY-MM-DD')
+        this.params.endDate = moment(calendarApi.view.currentEnd).endOf('month').format('YYYY-MM-DD')
+
+        this.GetCourseSchedulingList(this.params).then(res => {
+          if (res && this.$refs.fullCalendar) {
+            // 使用FullCalendar API来更新事件，避免频闪
+            const calendarApi = this.$refs.fullCalendar.getApi()
+
+            // 移除所有现有事件
+            calendarApi.removeAllEvents()
+
+            // 批量添加新事件
+            const newEvents = res.map(item => ({
               id: item.id,
               title: item.courseName + ' ' + item.classroomName + ' ' + item.teacherName,
               start: item.date + ' ' + item.attendTime,
               end: item.date + ' ' + item.finishTime,
               extendedProps: item,
               backgroundColor: item.backgroundColor
+            }))
+
+            // 批量添加事件
+            newEvents.forEach(event => {
+              calendarApi.addEvent(event)
             })
-          })
-        }
-      }).catch(() => {
-      })
-      this.GetCourseSchedulingCourseCount(this.params).then(res => {
-        if (res) {
-          this.courseCountObj = res
-        }
-      }).catch(() => {
-      })
+          }
+        }).catch(() => {
+        })
+
+        this.GetCourseSchedulingCourseCount(this.params).then(res => {
+          if (res) {
+            this.courseCountObj = res
+          }
+        }).catch(() => {
+        })
+      } catch (error) {
+        console.warn('Calendar API not ready:', error)
+      }
     },
     saveSuccess () {
       this.search()
@@ -258,7 +285,13 @@ export default {
       this.importCourseSchedulingVisible = false
     },
     datesSet (info) {
-      this.search()
+      // 添加防抖，避免频繁调用
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout)
+      }
+      this.searchTimeout = setTimeout(() => {
+        this.search()
+      }, 100)
     },
     dayHeaderContent (info) {
       if (info.view.type === 'dayGridMonth') {
@@ -374,6 +407,12 @@ export default {
   mounted () {
     this.init()
     this.applyTheme(this.currentTheme)
+  },
+  beforeDestroy () {
+    // 清除定时器
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout)
+    }
   }
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-dialog title="批量新增" width="850px"
+    <el-dialog title="新增" width="850px"
                :close-on-click-modal="false"
                :close-on-press-escape="false"
                :visible.sync="dialogVisible"
@@ -38,7 +38,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="开结课日期" prop="dates">
+        <el-form-item label="上课日期" prop="dates">
           <el-date-picker :clearable="false"
                           v-model="form.dates"
                           :picker-options="datesPickerOptions"
@@ -46,7 +46,7 @@
                           range-separator="至" style="width: 610px;">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="周几上课" prop="weekList">
+        <el-form-item label="上课周期" prop="weekList">
           <el-checkbox-group v-model="weekList" :min="1" size="small">
             <el-checkbox border v-for="item in weekOptions" :key="item.label" :label="item.label" :checked="item.checked">{{item.name}}</el-checkbox>
           </el-checkbox-group>
@@ -139,13 +139,13 @@ export default {
       currentCourse: null,
       courseDuration: 0,
       weekOptions: [
-        { label: 1, name: '周一' },
-        { label: 2, name: '周二' },
-        { label: 3, name: '周三' },
-        { label: 4, name: '周四' },
-        { label: 5, name: '周五' },
-        { label: 6, name: '周六' },
-        { label: 7, name: '周七' }
+        { label: 1, name: '星期一' },
+        { label: 2, name: '星期二' },
+        { label: 3, name: '星期三' },
+        { label: 4, name: '星期四' },
+        { label: 5, name: '星期五' },
+        { label: 6, name: '星期六' },
+        { label: 7, name: '星期日' }
       ],
       datesPickerOptions: {
         firstDayOfWeek: 1
