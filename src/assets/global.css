@@ -352,7 +352,7 @@ body {
 }
 
 .el-message--success {
-  background: #67C23A !important;
+  background: #409EFF !important;
   border: none !important;
 }
 
@@ -767,4 +767,18 @@ body {
 
 .theme-retro-yellow .el-message--info {
   background: #c29f42 !important;
+}
+
+
+/* 小红点样式（is-dot 专属） */
+.el-badge__content.is-dot {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 10px !important; /* 避免文字徽章样式干扰 */
+  padding: 0 !important;
+  border-radius: 50% !important;
+  top: 200px !important;
+  right: 100px !important;
+  background-color: #F56C6C !important;
+  box-shadow: 0 0 0 2px white !important;
 }

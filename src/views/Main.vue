@@ -47,22 +47,22 @@ export default {
         {
           code: '03',
           path: '/classroom',
-          name: '教室'
+          name: '教室管理'
         },
         {
           code: '04',
           path: '/course',
-          name: '课程'
+          name: '课程管理'
         },
         {
           code: '05',
           path: '/teacher',
-          name: '老师'
+          name: '老师管理'
         },
         {
           code: '06',
           path: '/report',
-          name: '报表'
+          name: '课程统计'
         },
         {
           code: '07',
@@ -72,7 +72,7 @@ export default {
         {
           code: '08',
           path: '/settings',
-          name: '设置'
+          name: '用户设置'
         }
       ],
       pollInterval: null, // 轮询定时器
@@ -207,8 +207,8 @@ export default {
 
 .reminder-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 15px;
+  right: 64px;
   transform: scale(0.8);
 }
 
