@@ -354,21 +354,57 @@ body {
 .el-message--success {
   background: #409EFF !important;
   border: none !important;
+  color: white !important;
+}
+
+.el-message--success .el-message__content {
+  color: white !important;
+}
+
+.el-message--success * {
+  color: white !important;
 }
 
 .el-message--warning {
   background: #E6A23C !important;
   border: none !important;
+  color: white !important;
+}
+
+.el-message--warning .el-message__content {
+  color: white !important;
+}
+
+.el-message--warning * {
+  color: white !important;
 }
 
 .el-message--error {
   background: #F56C6C !important;
   border: none !important;
+  color: white !important;
+}
+
+.el-message--error .el-message__content {
+  color: white !important;
+}
+
+.el-message--error * {
+  color: white !important;
 }
 
 .el-message--info {
   background: #909399 !important;
   border: none !important;
+  color: white !important;
+}
+
+.el-message--info .el-message__content {
+  color: white !important;
+}
+
+.el-message--info * {
+  color: white !important;
 }
 
 /* 统一导航菜单样式 */
@@ -707,66 +743,162 @@ body {
 
 .theme-dark .el-message--success {
   background: #666666 !important;
+  color: white !important;
+}
+
+.theme-dark .el-message--success .el-message__content,
+.theme-dark .el-message--success * {
+  color: white !important;
 }
 
 .theme-dark .el-message--warning {
   background: #808080 !important;
+  color: white !important;
+}
+
+.theme-dark .el-message--warning .el-message__content,
+.theme-dark .el-message--warning * {
+  color: white !important;
 }
 
 .theme-dark .el-message--error {
   background: #f45656 !important;
+  color: white !important;
+}
+
+.theme-dark .el-message--error .el-message__content,
+.theme-dark .el-message--error * {
+  color: white !important;
 }
 
 .theme-dark .el-message--info {
   background: #909399 !important;
+  color: white !important;
+}
+
+.theme-dark .el-message--info .el-message__content,
+.theme-dark .el-message--info * {
+  color: white !important;
 }
 
 .theme-macaron .el-message--success {
   background: #8b4789 !important;
+  color: white !important;
+}
+
+.theme-macaron .el-message--success .el-message__content,
+.theme-macaron .el-message--success * {
+  color: white !important;
 }
 
 .theme-macaron .el-message--warning {
   background: #a05a9e !important;
+  color: white !important;
+}
+
+.theme-macaron .el-message--warning .el-message__content,
+.theme-macaron .el-message--warning * {
+  color: white !important;
 }
 
 .theme-macaron .el-message--error {
   background: #ff6b6b !important;
+  color: white !important;
+}
+
+.theme-macaron .el-message--error .el-message__content,
+.theme-macaron .el-message--error * {
+  color: white !important;
 }
 
 .theme-macaron .el-message--info {
   background: #ffb6b9 !important;
+  color: white !important;
+}
+
+.theme-macaron .el-message--info .el-message__content,
+.theme-macaron .el-message--info * {
+  color: white !important;
 }
 
 .theme-fresh-green .el-message--success {
   background: #1e7e34 !important;
+  color: white !important;
+}
+
+.theme-fresh-green .el-message--success .el-message__content,
+.theme-fresh-green .el-message--success * {
+  color: white !important;
 }
 
 .theme-fresh-green .el-message--warning {
   background: #28a745 !important;
+  color: white !important;
+}
+
+.theme-fresh-green .el-message--warning .el-message__content,
+.theme-fresh-green .el-message--warning * {
+  color: white !important;
 }
 
 .theme-fresh-green .el-message--error {
   background: #dc3545 !important;
+  color: white !important;
+}
+
+.theme-fresh-green .el-message--error .el-message__content,
+.theme-fresh-green .el-message--error * {
+  color: white !important;
 }
 
 .theme-fresh-green .el-message--info {
   background: #28c76f !important;
+  color: white !important;
+}
+
+.theme-fresh-green .el-message--info .el-message__content,
+.theme-fresh-green .el-message--info * {
+  color: white !important;
 }
 
 .theme-retro-yellow .el-message--success {
   background: #8b4513 !important;
+  color: white !important;
+}
+
+.theme-retro-yellow .el-message--success .el-message__content,
+.theme-retro-yellow .el-message--success * {
+  color: white !important;
 }
 
 .theme-retro-yellow .el-message--warning {
   background: #a0522d !important;
+  color: white !important;
+}
+
+.theme-retro-yellow .el-message--warning .el-message__content,
+.theme-retro-yellow .el-message--warning * {
+  color: white !important;
 }
 
 .theme-retro-yellow .el-message--error {
   background: #cd853f !important;
+  color: white !important;
+}
+
+.theme-retro-yellow .el-message--error .el-message__content,
+.theme-retro-yellow .el-message--error * {
+  color: white !important;
 }
 
 .theme-retro-yellow .el-message--info {
   background: #c29f42 !important;
+  color: white !important;
+}
+
+.theme-retro-yellow .el-message--info .el-message__content,
+.theme-retro-yellow .el-message--info * {
+  color: white !important;
 }
 
 
