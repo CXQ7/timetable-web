@@ -154,56 +154,158 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url("~@/assets/register-bg.jpg") no-repeat center center;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
   position: relative;
-  background-size: cover;
   padding: 20px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .register-container::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%23ffffff" opacity="0.05"/><circle cx="10" cy="60" r="0.5" fill="%23ffffff" opacity="0.05"/><circle cx="90" cy="40" r="0.5" fill="%23ffffff" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
   z-index: 0;
 }
 
 .registerForm {
-  border-radius: 15px;
-  background-clip: padding-box;
-  margin: 100px auto;
-  width: 400px;
-  padding: 25px 35px 25px 35px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid #eaeaea;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 400px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.registerForm:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.registerForm::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #764ba2, #667eea, #5dade2, #3498db, #2980b9);
+  border-radius: 16px 16px 0 0;
 }
 
 .registerTitle {
   margin: 0 auto 30px auto;
   text-align: center;
-  font-size: 24px;
-  color: #303133;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+}
+
+.registerTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(90deg, #764ba2, #667eea);
+  border-radius: 2px;
 }
 
 .login-link {
   text-align: center;
-  margin-top: 20px;
-  font-size: 14px;
+  margin-top: 25px;
+  font-size: 0.9rem;
   color: #606266;
+  font-weight: 500;
 }
+
+.el-form-item {
+  margin-bottom: 25px;
+}
+
+.el-input__inner {
+  border-radius: 10px;
+  border: 2px solid #e9ecef;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.el-input__inner:focus {
+  border-color: #764ba2;
+  box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+  background: rgba(255, 255, 255, 1);
+}
+
+.el-button {
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.el-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.el-button:hover::before {
+  left: 100%;
+}
+
+.el-button:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
+  transform: translateY(-2px);
+}
+
+.el-link {
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.el-link:hover {
+  transform: translateY(-1px);
+}
+
 /* 平板及以上设备适配 */
 @media (min-width: 768px) {
   .registerForm {
-    padding: 25px 35px;
+    padding: 35px 40px;
+    max-width: 450px;
   }
 
   .registerTitle {
-    font-size: 1.75rem;
+    font-size: 2.25rem;
     margin-bottom: 40px;
   }
 }
@@ -211,20 +313,50 @@ export default {
 /* 桌面设备适配 */
 @media (min-width: 992px) {
   .registerForm {
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    padding: 40px 50px;
+  }
+  .registerTitle {
+    font-size: 2.5rem;
   }
 }
 
-/* 小屏幕手机特殊适配 */
-@media (max-width: 360px) {
-  .registerForm {
-    padding: 15px;
-  }
+/* 主题适配 */
+.theme-dark .register-container {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
 
-  .register-container {
-    margin-top: 10px;
-  }
+.theme-dark .registerForm {
+  background: rgba(45, 45, 45, 0.95);
+  color: #ffffff;
+}
+
+.theme-dark .registerTitle {
+  background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.theme-dark .el-input__inner {
+  background: rgba(45, 45, 45, 0.8);
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.theme-dark .el-input__inner:focus {
+  background: rgba(45, 45, 45, 1);
+  border-color: #764ba2;
+}
+
+.theme-macaron .register-container {
+  background: linear-gradient(135deg, #ffb6b9 0%, #8b4789 100%);
+}
+
+.theme-fresh-green .register-container {
+  background: linear-gradient(135deg, #28c76f 0%, #1e7e34 100%);
+}
+
+.theme-retro-yellow .register-container {
+  background: linear-gradient(135deg, #c29f42 0%, #8b4513 100%);
 }
 </style>

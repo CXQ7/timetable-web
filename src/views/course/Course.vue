@@ -40,7 +40,6 @@
             <el-button type="primary" size="mini" @click="showUpdate(scope.row.id)">编辑</el-button>
             <el-switch v-model="scope.row.enableState"
                        :active-value="1" :inactive-value="2"
-                       active-color="#13ce66" inactive-color="#ff4949"
                        style="margin-left: 10px;"
                        @change="updateEnableState($event, scope.row.id)"></el-switch>
           </template>

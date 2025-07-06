@@ -1,14 +1,15 @@
 <template>
-  <div>
-    <div style="margin-bottom: 10px;">
+  <div class="report-container">
+    <div class="date-picker-container">
       <el-date-picker :clearable="false"
                       :picker-options="pickerOptions"
                       v-model="dates"
                       type="daterange"
-                      range-separator="至">
+                      range-separator="至"
+                      class="theme-date-picker">
       </el-date-picker>
     </div>
-    <el-tabs active-name="teacherCourse" type="card">
+    <el-tabs active-name="teacherCourse" type="card" class="theme-tabs">
       <el-tab-pane label="老师上课数" name="teacherCourse">
         <TeacherCourseCountReport :startDate="startDate" :endDate="endDate"></TeacherCourseCountReport>
       </el-tab-pane>
@@ -81,5 +82,46 @@ export default {
 </script>
 
 <style scoped>
+.report-container {
+  padding: 20px;
+}
 
+.date-picker-container {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.date-picker-container:hover {
+  border-color: #409EFF;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+}
+
+.theme-date-picker {
+  width: 100%;
+}
+
+.theme-tabs {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+/* 深色主题样式 */
+.theme-dark .date-picker-container {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+.theme-dark .date-picker-container:hover {
+  border-color: #409EFF;
+}
+
+.theme-dark .theme-tabs {
+  background: #2d2d2d;
+}
 </style>

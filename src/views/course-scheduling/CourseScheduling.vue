@@ -189,7 +189,9 @@ export default {
         // 停止缩放时触发
         eventResizeStop: this.eventResizeStop,
         // 当缩放停止且事件持续时间发生更改时触发
-        eventResize: this.eventResize
+        eventResize: this.eventResize,
+        // 自定义事件显示内容
+        eventContent: this.eventContent
       }
     }
   },
@@ -243,11 +245,18 @@ export default {
             // 批量添加新事件
             const newEvents = res.map(item => ({
               id: item.id,
-              title: item.courseName + ' ' + item.classroomName + ' ' + item.teacherName,
+              title: `${item.courseName} - ${item.classroomName} - ${item.teacherName}`,
               start: item.date + ' ' + item.attendTime,
               end: item.date + ' ' + item.finishTime,
-              extendedProps: item,
-              backgroundColor: item.backgroundColor
+              extendedProps: {
+                ...item,
+                courseName: item.courseName,
+                classroomName: item.classroomName,
+                teacherName: item.teacherName,
+                remarks: item.remarks
+              },
+              backgroundColor: item.backgroundColor,
+              borderColor: item.backgroundColor
             }))
 
             // 批量添加事件
@@ -402,6 +411,67 @@ export default {
       if (themeClass && themeClass !== 'default') {
         document.body.classList.add(themeClass)
       }
+    },
+    // 自定义事件显示内容
+    eventContent (info) {
+      const event = info.event
+      const extendedProps = event.extendedProps || {}
+      const viewType = info.view.type
+      // 获取时间信息
+      const startTime = moment(event.start).format('HH:mm')
+      const endTime = moment(event.end).format('HH:mm')
+      // 创建自定义HTML结构
+      const eventElement = document.createElement('div')
+      eventElement.className = `custom-event-content ${viewType}-view`
+      // 根据视图类型调整布局
+      if (viewType === 'timeGridDay') {
+        // 日视图：使用网格布局，内容更均匀分布
+        eventElement.innerHTML = `
+          <div class="event-time">${startTime} - ${endTime}</div>
+          <div class="event-details-grid">
+            <div class="event-course">
+              <i class="el-icon-reading"></i>
+              <span>${extendedProps.courseName || ''}</span>
+            </div>
+            <div class="event-location">
+              <i class="el-icon-location-outline"></i>
+              <span>${extendedProps.classroomName || ''}</span>
+            </div>
+            <div class="event-teacher">
+              <i class="el-icon-user"></i>
+              <span>${extendedProps.teacherName || ''}</span>
+            </div>
+            ${extendedProps.remarks ? `<div class="event-remarks">
+              <i class="el-icon-document"></i>
+              <span>${extendedProps.remarks}</span>
+            </div>` : ''}
+          </div>
+        `
+      } else {
+        // 周视图和月视图：保持原有布局
+        eventElement.innerHTML = `
+          <div class="event-time">${startTime} - ${endTime}</div>
+          <div class="event-details">
+            <div class="event-course">
+              <i class="el-icon-reading"></i>
+              <span>${extendedProps.courseName || ''}</span>
+            </div>
+            <div class="event-location">
+              <i class="el-icon-location-outline"></i>
+              <span>${extendedProps.classroomName || ''}</span>
+            </div>
+            <div class="event-teacher">
+              <i class="el-icon-user"></i>
+              <span>${extendedProps.teacherName || ''}</span>
+            </div>
+            ${extendedProps.remarks ? `<div class="event-remarks">
+              <i class="el-icon-document"></i>
+              <span>${extendedProps.remarks}</span>
+            </div>` : ''}
+          </div>
+        `
+      }
+      return { domNodes: [eventElement] }
     }
   },
   mounted () {
@@ -420,41 +490,56 @@ export default {
 <style>
 /* 自定义时间轴样式 - 适应主题变化 */
 .fc-timegrid-slot-label {
-  min-width: 80px !important;
-  width: 80px !important;
+  min-width: 90px !important;
+  width: 90px !important;
   font-weight: bold !important;
-  font-size: 16px !important;
+  font-size: 18px !important;
   color: var(--primary-color) !important;
   text-align: center !important;
-  padding: 0 10px !important;
-  background-color: var(--card-bg) !important;
-  border-right: 1px solid var(--primary-color) !important;
+  padding: 8px 12px !important;
+  background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,255,255,0.1) 100%) !important;
+  border-right: 2px solid var(--primary-color) !important;
   transition: all 0.3s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.fc-timegrid-slot-label::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--primary-color) 50%, transparent 100%) !important;
+  opacity: 0.6;
 }
 
 /* 时间轴容器样式 */
 .fc-timegrid-axis {
-  min-width: 80px !important;
-  width: 80px !important;
-  background-color: var(--card-bg) !important;
+  min-width: 90px !important;
+  width: 90px !important;
+  background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,255,255,0.05) 100%) !important;
   transition: all 0.3s ease !important;
 }
 
 /* 时间轴文本样式 */
 .fc-timegrid-axis-cushion {
   font-weight: bold !important;
-  font-size: 16px !important;
+  font-size: 18px !important;
   color: var(--primary-color) !important;
   text-align: center !important;
-  padding: 0 10px !important;
+  padding: 8px 12px !important;
   transition: all 0.3s ease !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
 }
 
 /* 时间轴边框样式 */
 .fc-timegrid-axis-frame {
-  border-right: 1px solid var(--primary-color) !important;
-  background-color: var(--card-bg) !important;
+  border-right: 2px solid var(--primary-color) !important;
+  background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,255,255,0.05) 100%) !important;
   transition: all 0.3s ease !important;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1) !important;
 }
 
 /* 时间轴整体列宽度 */
@@ -465,8 +550,15 @@ export default {
 
 /* 时间轴文字悬停效果 */
 .fc-timegrid-slot-label:hover {
-  background-color: var(--primary-color) !important;
+  background: linear-gradient(135deg, var(--primary-color) 0%, rgba(255,255,255,0.2) 100%) !important;
   color: #fff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+}
+
+.fc-timegrid-slot-label:hover::before {
+  opacity: 1 !important;
+  background: linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%) !important;
 }
 
 /* 针对暗色主题的特殊处理 */
@@ -479,12 +571,16 @@ export default {
   color: #ffffff !important;
   font-family: 'Consolas', 'Monaco', monospace !important;
   font-weight: 500 !important;
-  font-size: 16px !important;
+  font-size: 18px !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
+.theme-dark .fc-timegrid-slot-label {
+  background: linear-gradient(135deg, #2c3e50 0%, rgba(255,255,255,0.05) 100%) !important;
+}
+
 .theme-dark .fc-timegrid-slot-label:hover {
-  background-color: #666666 !important;
+  background: linear-gradient(135deg, #666666 0%, rgba(255,255,255,0.1) 100%) !important;
   color: #ffffff !important;
 }
 
@@ -802,5 +898,260 @@ body:not([class*="theme-"]) .el-form-item__label {
 .el-dropdown-item {
   transition: all 0.3s ease !important;
   font-size: 16px !important;
+}
+
+/* 自定义事件显示样式 */
+.custom-event-content {
+  padding: 6px 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow: hidden;
+}
+
+.custom-event-content .event-time {
+  text-align: center;
+  font-weight: bold;
+  font-size: 17px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 3px 6px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.custom-event-content .event-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  min-height: 0;
+}
+
+.custom-event-content .event-details > div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+  font-size: 14px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-event-content .event-details > div:last-child {
+  margin-bottom: 0;
+}
+
+.custom-event-content .event-details i {
+  margin-right: 4px;
+  font-size: 15px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.custom-event-content .event-details span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.custom-event-content .event-course {
+  font-weight: bold;
+}
+
+.custom-event-content .event-location {
+  font-style: italic;
+}
+
+.custom-event-content .event-teacher {
+  font-weight: 500;
+}
+
+.custom-event-content .event-remarks {
+  font-size: 13px;
+  opacity: 0.9;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  padding-top: 3px;
+  margin-top: 3px;
+}
+
+/* 针对不同视图的优化 */
+.fc-timeGridWeek-view .custom-event-content,
+.fc-timeGridDay-view .custom-event-content {
+  font-size: 15px;
+}
+
+.fc-timeGridWeek-view .custom-event-content .event-time,
+.fc-timeGridDay-view .custom-event-content .event-time {
+  font-size: 17px;
+}
+
+.fc-timeGridWeek-view .custom-event-content .event-details > div,
+.fc-timeGridDay-view .custom-event-content .event-details > div {
+  font-size: 14px;
+}
+
+.fc-timeGridWeek-view .custom-event-content .event-details i,
+.fc-timeGridDay-view .custom-event-content .event-details i {
+  font-size: 15px;
+}
+
+/* 日视图特殊布局 - 网格分布 */
+.timeGridDay-view .custom-event-content {
+  padding: 8px 10px;
+}
+
+.timeGridDay-view .event-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 6px;
+  margin-top: 6px;
+  height: calc(100% - 40px);
+}
+
+.timeGridDay-view .event-details-grid > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.timeGridDay-view .event-details-grid > div:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.02);
+}
+
+.timeGridDay-view .event-details-grid .event-course {
+  grid-column: 1 / -1;
+  font-weight: bold;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.timeGridDay-view .event-details-grid .event-location {
+  grid-column: 1 / 2;
+}
+
+.timeGridDay-view .event-details-grid .event-teacher {
+  grid-column: 2 / 3;
+}
+
+.timeGridDay-view .event-details-grid .event-remarks {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.timeGridDay-view .event-details-grid i {
+  margin-right: 4px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.timeGridDay-view .event-details-grid span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.fc-dayGridMonth-view .custom-event-content {
+  font-size: 13px;
+}
+
+.fc-dayGridMonth-view .custom-event-content .event-time {
+  font-size: 14px;
+}
+
+.fc-dayGridMonth-view .custom-event-content .event-details > div {
+  font-size: 12px;
+}
+
+.fc-dayGridMonth-view .custom-event-content .event-details i {
+  font-size: 13px;
+}
+
+.fc-dayGridMonth-view .custom-event-content .event-remarks {
+  font-size: 11px;
+}
+
+/* 主题适配 */
+.theme-dark .custom-event-content .event-time {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .custom-event-content .event-remarks {
+  border-top-color: rgba(255, 255, 255, 0.4);
+}
+
+.theme-macaron .custom-event-content .event-time {
+  background: rgba(139, 71, 137, 0.3);
+}
+
+.theme-macaron .custom-event-content .event-remarks {
+  border-top-color: rgba(255, 255, 255, 0.4);
+}
+
+.theme-fresh-green .custom-event-content .event-time {
+  background: rgba(30, 126, 52, 0.3);
+}
+
+.theme-fresh-green .custom-event-content .event-remarks {
+  border-top-color: rgba(255, 255, 255, 0.4);
+}
+
+.theme-retro-yellow .custom-event-content .event-time {
+  background: rgba(139, 69, 19, 0.3);
+}
+
+.theme-retro-yellow .custom-event-content .event-remarks {
+  border-top-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 增强事件的可读性 */
+.fc-event {
+  border-radius: 6px !important;
+  border-width: 1px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.fc-event:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 确保事件内容不会被截断 */
+.fc-event-main {
+  padding: 0 !important;
+}
+
+.fc-event-main-frame {
+  padding: 0 !important;
+}
+
+.fc-event-title-container {
+  padding: 0 !important;
+}
+
+.fc-event-title {
+  padding: 0 !important;
+  margin: 0 !important;
 }
 </style>

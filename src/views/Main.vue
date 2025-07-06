@@ -1,24 +1,25 @@
 <template>
-  <el-container>
-    <el-aside width="100px">
-      <el-menu router @select="handleSelect">
+  <el-container class="main-container">
+    <el-aside width="100px" class="main-aside">
+      <el-menu router @select="handleSelect" class="main-menu">
         <el-menu-item
           v-for="item in navData"
           :key="item.code"
           :index="item.code"
           :route="item.path"
+          class="main-menu-item"
         >
           <span>{{ item.name }}</span>
           <el-badge
             v-if="item.code === '07' && reminderDot"
             is-dot
-            style="margin-left: 4px"
+            class="reminder-badge"
           >
           </el-badge>
         </el-menu-item>
       </el-menu>
     </el-aside>
-    <el-main style="padding: 10px 20px">
+    <el-main class="main-content">
       <router-view />
     </el-main>
   </el-container>
@@ -134,4 +135,165 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.main-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.main-aside {
+  background: #2c3e50;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.main-aside::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7);
+  opacity: 0.8;
+}
+
+.main-menu {
+  border: none;
+  background: transparent;
+  padding: 20px 0;
+}
+
+.main-menu-item {
+  margin: 8px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px 12px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.main-menu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.main-menu-item:hover::before {
+  left: 100%;
+}
+
+.main-menu-item:hover {
+  background: #3498db;
+  color: white;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.main-menu-item.is-active {
+  background: #409EFF;
+  color: white;
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+}
+
+.reminder-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  transform: scale(0.8);
+}
+
+.main-content {
+  padding: 20px 30px;
+  background: transparent;
+  position: relative;
+}
+
+.main-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" opacity="0.02"/><circle cx="75" cy="75" r="1" fill="%23ffffff" opacity="0.02"/><circle cx="50" cy="10" r="0.5" fill="%23ffffff" opacity="0.01"/><circle cx="10" cy="60" r="0.5" fill="%23ffffff" opacity="0.01"/><circle cx="90" cy="40" r="0.5" fill="%23ffffff" opacity="0.01"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  pointer-events: none;
+}
+
+/* 主题适配 */
+.theme-dark .main-container {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
+
+.theme-dark .main-aside {
+  background: #1a1a1a;
+}
+
+.theme-dark .main-menu-item:hover {
+  background: #404040;
+}
+
+.theme-dark .main-menu-item.is-active {
+  background: #666666;
+}
+
+.theme-macaron .main-aside {
+  background: #8b4789;
+}
+
+.theme-macaron .main-menu-item:hover {
+  background: #a05a9e;
+}
+
+.theme-macaron .main-menu-item.is-active {
+  background: #ffb6b9;
+}
+
+.theme-fresh-green .main-aside {
+  background: #1e7e34;
+}
+
+.theme-fresh-green .main-menu-item:hover {
+  background: #28a745;
+}
+
+.theme-fresh-green .main-menu-item.is-active {
+  background: #28c76f;
+}
+
+.theme-retro-yellow .main-aside {
+  background: #8b4513;
+}
+
+.theme-retro-yellow .main-menu-item:hover {
+  background: #a0522d;
+}
+
+.theme-retro-yellow .main-menu-item.is-active {
+  background: #c29f42;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-aside {
+    width: 80px !important;
+  }
+  .main-menu-item {
+    font-size: 12px;
+    padding: 12px 8px;
+    margin: 4px 8px;
+  }
+  .main-content {
+    padding: 15px 20px;
+  }
+}
+</style>

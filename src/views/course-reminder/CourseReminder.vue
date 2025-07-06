@@ -7,20 +7,24 @@
     <!-- 顶部开关：站内提醒 & 邮件提醒 -->
     <el-row class="tams-search-container" gutter="20">
       <el-col :span="12">
-        <el-switch
-          v-model="settings.inSite"
-          active-text="开启站内提醒"
-          inactive-text="关闭站内提醒"
-          @change="onToggle('inSite')"
-        />
+        <div class="switch-container">
+          <el-switch
+            v-model="settings.inSite"
+            active-text="开启站内提醒"
+            inactive-text="关闭站内提醒"
+            @change="onToggle('inSite')"
+          />
+        </div>
       </el-col>
       <el-col :span="12">
-        <el-switch
-          v-model="settings.email"
-          active-text="开启邮件提醒"
-          inactive-text="关闭邮件提醒"
-          @change="onToggle('email')"
-        />
+        <div class="switch-container">
+          <el-switch
+            v-model="settings.email"
+            active-text="开启邮件提醒"
+            inactive-text="关闭邮件提醒"
+            @change="onToggle('email')"
+          />
+        </div>
       </el-col>
     </el-row>
 
@@ -123,5 +127,30 @@ export default {
 <style scoped>
 .tams-search-container {
   margin-bottom: 10px;
+}
+
+.switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.switch-container:hover {
+  border-color: #409EFF;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+}
+
+.theme-dark .switch-container {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+.theme-dark .switch-container:hover {
+  border-color: #409EFF;
 }
 </style>
