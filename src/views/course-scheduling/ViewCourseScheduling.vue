@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-dialog title="详情" width="790px"
+    <el-dialog title="课程详情" width="900px"
                :visible.sync="dialogVisible"
                :before-close="handleClose" >
       <el-form ref="form" :model="form" inline label-width="80px" class="tams-form-container">
@@ -23,6 +23,25 @@
           <el-input v-model="form.finishTime" class="tams-form-item" readonly></el-input>
         </el-form-item>
       </el-form>
+
+      <!-- 备注字段 -->
+      <div style="margin-top: 20px;">
+        <el-divider>备注</el-divider>
+        <el-form-item label="备注" style="width: 100%;">
+          <el-input
+            v-model="form.remarks"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入备注信息、待办事项或注意事项"
+            style="width: 100%;"
+            @blur="saveRemarks">
+          </el-input>
+        </el-form-item>
+        <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+          <i class="el-icon-info"></i> 备注内容会自动保存
+        </div>
+      </div>
+
       <div slot="footer" class="dialog-footer">
         <el-popconfirm title="确定要删除吗？" @onConfirm="remove">
           <el-button type="danger" slot="reference" style="margin-right: 10px;">删除</el-button>
@@ -44,7 +63,9 @@ import UpdateCourseScheduling from '@/views/course-scheduling/UpdateCourseSchedu
 
 export default {
   name: 'ViewCourseScheduling',
-  components: { UpdateCourseScheduling },
+  components: {
+    UpdateCourseScheduling
+  },
   props: {
     visible: {
       type: Boolean
@@ -55,11 +76,12 @@ export default {
     return {
       dialogVisible: false,
       updateCourseSchedulingVisible: false,
-      form: {}
+      form: {},
+      remarksChanged: false
     }
   },
   methods: {
-    ...mapActions(['GetCourseSchedulingById', 'RemoveCourseSchedulingById']),
+    ...mapActions(['GetCourseSchedulingById', 'RemoveCourseSchedulingById', 'UpdateCourseSchedulingById']),
     search () {
       this.GetCourseSchedulingById(this.id).then((res) => {
         this.form = res
@@ -67,6 +89,21 @@ export default {
         this.form.finishTime = moment(res.finishTime, 'HH:mm:ss').format('HH:mm')
       }).catch(() => {
       })
+    },
+    saveRemarks () {
+      if (this.remarksChanged) {
+        this.UpdateCourseSchedulingById({
+          id: this.id,
+          data: {
+            remarks: this.form.remarks
+          }
+        }).then(() => {
+          this.$message.success('备注已保存')
+          this.remarksChanged = false
+        }).catch(() => {
+          this.$message.error('备注保存失败')
+        })
+      }
     },
     remove () {
       this.RemoveCourseSchedulingById(this.id).then((res) => {
@@ -97,7 +134,24 @@ export default {
         this.search()
         this.dialogVisible = val
       }
+    },
+    'form.remarks': {
+      handler (newVal, oldVal) {
+        if (oldVal !== undefined) {
+          this.remarksChanged = true
+        }
+      },
+      deep: true
     }
   }
 }
 </script>
+
+<style scoped>
+.tams-form-container .el-form-item {
+  margin-bottom: 15px;
+}
+.tams-form-item {
+  width: 300px;
+}
+</style>

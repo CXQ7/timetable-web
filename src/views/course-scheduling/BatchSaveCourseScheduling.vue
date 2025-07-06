@@ -73,6 +73,15 @@
         <el-form-item label="下课时间" prop="finishTime">
           <el-input style="width: 130px" v-model="form.finishTime" :disabled="!(form.courseId&&form.courseId>0)" readonly></el-input>
         </el-form-item>
+        <br/>
+        <el-form-item label="备注" style="width: 100%;">
+          <el-input v-model="form.remarks"
+                    type="textarea"
+                    :rows="3"
+                    placeholder="请输入备注信息、待办事项或注意事项"
+                    style="width: 100%;">
+          </el-input>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="close">取消</el-button>

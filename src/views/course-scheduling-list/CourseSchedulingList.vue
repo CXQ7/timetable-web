@@ -59,7 +59,8 @@
       <el-table-column prop="finishTime" label="下课时间" width="90"></el-table-column>
       <el-table-column prop="classroomName" label="教室" width="120"></el-table-column>
       <el-table-column prop="courseName" label="课程" width="120"></el-table-column>
-      <el-table-column prop="teacherName" label="老师"></el-table-column>
+      <el-table-column prop="teacherName" label="老师" width="120"></el-table-column>
+      <el-table-column prop="remarks" label="备注" show-overflow-tooltip></el-table-column>
     </el-table>
   </el-card>
 </template>
