@@ -68,7 +68,7 @@ export default {
     ]),
     // 初始化：拉取用户设置 & 如果站内提醒开启则拉取列表
     init () {
-      this.GetReminderSettings()
+      this.GetReminderSettings({ username: this.userInfo.username })
         .then(res => {
           this.settings = res
           if (this.settings.inSite) {
@@ -86,7 +86,7 @@ export default {
           return
         }
       }
-      this.UpdateReminderSettings({ [key]: this.settings[key] })
+      this.UpdateReminderSettings({ username: this.userInfo.username, [key]: this.settings[key] })
         .then(() => {
           this.$message.success('提醒设置已更新')
           if (key === 'inSite' && this.settings.inSite) {
@@ -99,7 +99,7 @@ export default {
     // 拉取最近 1 条即将提醒的数据
     loadReminders () {
       this.loading = true
-      this.GetUpcomingReminders({ limit: 1 })
+      this.GetUpcomingReminders({ username: this.userInfo.username, limit: 1 })
         .then(res => {
           this.reminders = res
           // 有新提醒时，设置红点

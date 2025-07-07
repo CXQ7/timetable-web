@@ -1,14 +1,15 @@
 import { axios } from '@/util/request'
 
-// 获取用户提醒设置
-export const getReminderSettings = () => {
+// 获取用户提醒设置 参数为username
+export const getReminderSettings = (params) => {
   return axios({
     url: 'course-reminder/settings',
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 
-// 更新用户提醒设置（inSite, email）
+// 更新用户提醒设置 传username +（inSite, email）
 export const updateReminderSettings = (data) => {
   return axios({
     url: 'course-reminder/settings',
@@ -17,7 +18,7 @@ export const updateReminderSettings = (data) => {
   })
 }
 
-// 获取即将在30分钟内开始的课程提醒列表
+// 获取即将在30分钟内开始的课程提醒列表 传username（实际上还传了一个limit为1，限制只收1条，但可以不用）
 export const getUpcomingReminders = (params) => {
   return axios({
     url: 'course-reminder/upcoming',
