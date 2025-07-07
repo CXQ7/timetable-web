@@ -26,8 +26,8 @@
                   :on-change="handleAvatarChange"
                 >
                   <img
-                    v-if="userForm.avatar"
-                    :src="userForm.avatar"
+                    v-if="userForm.avatar_url"
+                    :src="userForm.avatar_url"
                     class="avatar"
                   />
                   <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -258,6 +258,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import { saveCalendarSettings, updateCalendarSettings } from '@/api/settings'
 
 export default {
   name: 'SystemSettings',
@@ -265,7 +266,7 @@ export default {
     return {
       loading: false, // 加载状态
       userForm: {
-        avatar: '', // 用户头像
+        avatar_url: '', // 用户头像
         username: '', // 用户名
         email: '', // 邮箱
         phone: '' // 手机号
@@ -322,20 +323,30 @@ export default {
     },
 
     // 保存课表设置
-    saveScheduleSettings () {
+    async saveScheduleSettings () {
       this.loading = true
-      // 模拟API调用
-      setTimeout(() => {
+      try {
+        // 先尝试更新
+        await updateCalendarSettings(this.scheduleForm)
+        this.$message.success('课表设置更新成功')
+      } catch (err) {
+        // 如果更新失败，尝试插入
+        try {
+          await saveCalendarSettings(this.scheduleForm)
+          this.$message.success('课表设置保存成功')
+        } catch (saveErr) {
+          this.$message.error(saveErr.message || '课表设置保存失败')
+        }
+      } finally {
         this.loading = false
-        this.$message.success('课表设置保存成功')
-      }, 500)
+      }
     },
 
     // 处理头像上传
     handleAvatarChange (file) {
       const reader = new FileReader()
       reader.onload = (e) => {
-        this.userForm.avatar = e.target.result
+        this.userForm.avatar_url = e.target.result
       }
       reader.readAsDataURL(file.raw)
     },

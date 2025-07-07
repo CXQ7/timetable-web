@@ -1,4 +1,6 @@
 import * as Api from '@/api/authentication'
+import { saveCalendarSettings } from '@/api/settings'
+import defaultSettings from '@/store/settings'
 
 const authentication = {
   state: {
@@ -16,18 +18,6 @@ const authentication = {
   actions: {
     Login ({ commit }, { username, password }) {
       return new Promise((resolve, reject) => {
-        if (username === 'admin' && password === '123456') {
-          // 模拟登录成功
-          const userInfo = {
-            username: 'admin',
-            password: '123456',
-            email: 'example@qq.com',
-            phone: '12345678901'
-          }
-          commit('SET_USER_INFO', userInfo)
-          commit('SET_TOKEN', '模拟token值')
-          resolve(userInfo)
-        }
         Api.getUserByUsername(username)
           .then((res) => {
             if (res.data && res.data.password === password) {
@@ -65,9 +55,17 @@ const authentication = {
     SaveRegister ({ commit }, data) {
       return new Promise((resolve, reject) => {
         Api.saveRegister(data)
-          .then((res) => {
+          .then(async (res) => {
             commit('SET_USER_INFO', res.data.userInfo)
             commit('SET_TOKEN', res.data.token)
+            // 注册成功后插入课表设置
+            try {
+              await saveCalendarSettings(
+                defaultSettings.state.scheduleSettings
+              )
+            } catch (e) {
+              // 可以选择忽略或处理错误
+            }
             resolve(res.data)
           })
           .catch((err) => {

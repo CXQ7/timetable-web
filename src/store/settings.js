@@ -2,7 +2,7 @@ const state = {
   // 课表显示设置
   scheduleSettings: {
     name: 'test课表',
-    firstWeekDay: '2025.7.7',
+    firstWeekDay: '2025-07-07',
     classesPerDay: 11,
     semesterCount: 2,
     showSaturday: true,

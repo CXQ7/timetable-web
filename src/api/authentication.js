@@ -17,8 +17,8 @@ export const saveRegister = (data) => {
 
 export const updateUserInfo = (data) => {
   return axios({
-    url: 'user/update',
-    method: 'post',
+    url: 'user/update/' + data.username,
+    method: 'put',
     data
   })
 }

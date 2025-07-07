@@ -303,10 +303,25 @@ export default {
     firstWeekDayDate () {
       // 取settings里的firstWeekDay，格式化为YYYY-MM-DD
       const d = this.getScheduleSettings.firstWeekDay
-      if (!d) return null
-      // 兼容字符串和Date对象
-      const date =
-        typeof d === 'string' ? d.slice(0, 10) : moment(d).format('YYYY-MM-DD')
+      console.log('firstWeekDay raw value:', d, typeof d)
+      if (!d) {
+        console.log('firstWeekDay is empty')
+        return null
+      }
+
+      let date
+      if (typeof d === 'string') {
+        // 如果是字符串，直接取前10位
+        date = d.slice(0, 10)
+      } else if (d instanceof Date) {
+        // 如果是Date对象
+        date = moment(d).format('YYYY-MM-DD')
+      } else {
+        // 其他情况，尝试用moment解析
+        date = moment(d).format('YYYY-MM-DD')
+      }
+
+      console.log('firstWeekDay formatted:', date)
       return date
     }
   },
@@ -618,9 +633,21 @@ export default {
     },
     // 日历单元格挂载时，标注第一周的第一天
     handleDayCellDidMount (arg) {
-      if (!this.firstWeekDayDate) return
+      if (!this.firstWeekDayDate) {
+        console.log('firstWeekDayDate is null, skipping')
+        return
+      }
       const cellDate = moment(arg.date).format('YYYY-MM-DD')
+      console.log(
+        'cellDate:',
+        cellDate,
+        'firstWeekDayDate:',
+        this.firstWeekDayDate,
+        'match:',
+        cellDate === this.firstWeekDayDate
+      )
       if (cellDate === this.firstWeekDayDate) {
+        console.log('Adding first week day indicator to:', cellDate)
         // 创建红线和箭头
         const marker = document.createElement('div')
         marker.className = 'first-weekday-indicator'
