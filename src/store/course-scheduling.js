@@ -94,9 +94,9 @@ const courseScheduling = {
           })
       })
     },
-    RemoveCourseSchedulingById ({ commit }, id) {
+    RemoveCourseSchedulingById ({ commit }, { id, username }) {
       return new Promise((resolve, reject) => {
-        Api.removeCourseSchedulingById(id)
+        Api.removeCourseSchedulingById(id, username)
           .then(res => {
             resolve(res.data)
           })
@@ -105,9 +105,9 @@ const courseScheduling = {
           })
       })
     },
-    RemoveCourseSchedulingByIdList ({ commit }, idList) {
+    RemoveCourseSchedulingByIdList ({ commit }, data) {
       return new Promise((resolve, reject) => {
-        Api.removeCourseSchedulingByIdList(idList)
+        Api.removeCourseSchedulingByIdList(data)
           .then(res => {
             resolve(res.data)
           })

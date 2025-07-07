@@ -167,7 +167,7 @@ import listPlugin from '@fullcalendar/list'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import moment from 'moment'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import SaveCourseScheduling from '@/views/course-scheduling/SaveCourseScheduling'
 import ViewCourseScheduling from '@/views/course-scheduling/ViewCourseScheduling'
 import BatchSaveCourseScheduling from '@/views/course-scheduling/BatchSaveCourseScheduling'
@@ -291,6 +291,9 @@ export default {
       'getShowNonCurrentWeek',
       'getScheduleSettings'
     ]),
+    ...mapState({
+      userInfo: state => state.authentication.userInfo
+    }),
     calendarHiddenDays () {
       const hidden = []
       if (!this.getShowSunday) hidden.push(0)
@@ -376,6 +379,9 @@ export default {
         this.params.endDate = moment(calendarApi.view.currentEnd)
           .endOf('month')
           .format('YYYY-MM-DD')
+
+        // 添加当前用户的username
+        this.params.username = this.userInfo?.username || ''
 
         this.GetCourseSchedulingList(this.params)
           .then((res) => {

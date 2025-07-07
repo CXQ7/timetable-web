@@ -63,17 +63,18 @@ export const updateCourseSchedulingTimeById = (id, data) => {
   })
 }
 
-export const removeCourseSchedulingById = (id) => {
+export const removeCourseSchedulingById = (id, username) => {
   return axios({
     url: 'course-scheduling/' + id,
-    method: 'delete'
+    method: 'delete',
+    data: { username }
   })
 }
 
-export const removeCourseSchedulingByIdList = (idList) => {
+export const removeCourseSchedulingByIdList = (data) => {
   return axios({
     url: 'course-scheduling/batch',
     method: 'delete',
-    data: idList
+    data
   })
 }

@@ -103,7 +103,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import moment from 'moment'
 import SaveClassroom from '@/views/classroom/SaveClassroom'
 import SaveCourse from '@/views/course/SaveCourse'
@@ -120,7 +120,9 @@ export default {
     visible: {
       type: Boolean
     },
-    id: [String, Number]
+    id: {
+      type: Number
+    }
   },
   data () {
     return {
@@ -190,6 +192,11 @@ export default {
       saveTeacherVisible: false
     }
   },
+  computed: {
+    ...mapState({
+      userInfo: state => state.authentication.userInfo
+    })
+  },
   methods: {
     ...mapActions(['GetClassroomRefList', 'GetCourseRefList', 'GetTeacherRefList', 'GetCourseSchedulingById', 'UpdateCourseSchedulingById']),
     init () {
@@ -247,6 +254,7 @@ export default {
           this.submitBtnLoading = true
           this.form.attendTime = moment(this.form.attendTime, 'HH:mm').format('HH:mm:ss')
           this.form.finishTime = moment(this.form.finishTime, 'HH:mm').format('HH:mm:ss')
+          this.form.username = this.userInfo?.username || ''
           this.UpdateCourseSchedulingById({
             id: this.id,
             data: this.form

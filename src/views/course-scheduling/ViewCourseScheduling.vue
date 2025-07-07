@@ -58,7 +58,7 @@
 
 <script>
 import moment from 'moment'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import UpdateCourseScheduling from '@/views/course-scheduling/UpdateCourseScheduling'
 
 export default {
@@ -80,6 +80,11 @@ export default {
       remarksChanged: false
     }
   },
+  computed: {
+    ...mapState({
+      userInfo: state => state.authentication.userInfo
+    })
+  },
   methods: {
     ...mapActions(['GetCourseSchedulingById', 'RemoveCourseSchedulingById', 'UpdateCourseSchedulingById']),
     search () {
@@ -95,7 +100,8 @@ export default {
         this.UpdateCourseSchedulingById({
           id: this.id,
           data: {
-            remarks: this.form.remarks
+            remarks: this.form.remarks,
+            username: this.userInfo?.username || ''
           }
         }).then(() => {
           this.$message.success('备注已保存')
@@ -106,7 +112,10 @@ export default {
       }
     },
     remove () {
-      this.RemoveCourseSchedulingById(this.id).then((res) => {
+      this.RemoveCourseSchedulingById({
+        id: this.id,
+        username: this.userInfo?.username || ''
+      }).then((res) => {
         this.$emit('on-success')
         this.dialogVisible = false
       }).catch(() => {
