@@ -105,7 +105,7 @@
 
 <script>
 import moment from 'moment'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import SaveClassroom from '@/views/classroom/SaveClassroom'
 import SaveCourse from '@/views/course/SaveCourse'
 import SaveTeacher from '@/views/teacher/SaveTeacher'
@@ -189,6 +189,11 @@ export default {
       saveTeacherVisible: false
     }
   },
+  computed: {
+    ...mapState({
+      userInfo: state => state.authentication.userInfo
+    })
+  },
   methods: {
     ...mapActions(['GetClassroomRefList', 'GetCourseRefList', 'GetTeacherRefList', 'SaveCourseScheduling']),
     init () {
@@ -240,6 +245,7 @@ export default {
           this.submitBtnLoading = true
           this.form.attendTime = moment(this.form.attendTime, 'HH:mm').format('HH:mm:ss')
           this.form.finishTime = moment(this.form.finishTime, 'HH:mm').format('HH:mm:ss')
+          this.form.username = this.userInfo?.username || ''
           this.SaveCourseScheduling(this.form).then(() => {
             this.submitBtnLoading = false
             this.resetData()

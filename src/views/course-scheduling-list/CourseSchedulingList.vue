@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import moment from 'moment'
 
 export default {
@@ -89,6 +89,11 @@ export default {
         end: '20:00'
       }
     }
+  },
+  computed: {
+    ...mapState({
+      userInfo: state => state.authentication.userInfo
+    })
   },
   methods: {
     ...mapActions(['GetClassroomRefList', 'GetCourseRefList', 'GetTeacherRefList', 'GetCourseSchedulingList', 'RemoveCourseSchedulingByIdList']),
@@ -118,10 +123,11 @@ export default {
       this.search()
     },
     search () {
-      if (this.params.dates && this.params.dates.length > 0) {
+      if (this.params.dates && this.params.dates.length === 2) {
         this.params.startDate = this.params.dates[0]
         this.params.endDate = this.params.dates[1]
       }
+      this.params.username = this.userInfo?.username || ''
       this.GetCourseSchedulingList(this.params).then(res => {
         if (res) {
           this.data = res
@@ -137,25 +143,25 @@ export default {
       this.search()
     },
     remove () {
-      if (this.idList && this.idList.length > 0) {
-        this.$confirm('确定要删除这 ' + this.idList.length + ' 条数据么', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.RemoveCourseSchedulingByIdList(this.idList).then(res => {
-            this.search()
-          }).catch()
-        }).catch(() => {})
-      }
-    },
-    handleSelectionChange (val) {
-      this.idList = []
-      if (val && val.length > 0) {
-        val.forEach(item => {
-          this.idList.push(item.id)
+      this.$confirm('确定要删除选中的课程排课吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        const deleteData = {
+          idList: this.idList,
+          username: this.userInfo?.username || ''
+        }
+        this.RemoveCourseSchedulingByIdList(deleteData).then(() => {
+          this.$message.success('删除成功')
+          this.search()
+        }).catch(() => {
         })
-      }
+      }).catch(() => {
+      })
+    },
+    handleSelectionChange (selection) {
+      this.idList = selection.map(item => item.id)
     }
   },
   mounted () {

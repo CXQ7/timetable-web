@@ -117,7 +117,7 @@
 
 <script>
 import moment from 'moment'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import SaveClassroom from '@/views/classroom/SaveClassroom'
 import SaveCourse from '@/views/course/SaveCourse'
 import SaveTeacher from '@/views/teacher/SaveTeacher'
@@ -191,7 +191,16 @@ export default {
             required: true,
             type: 'array',
             min: 2,
-            message: '开结课日期不能为空',
+            message: '上课日期不能为空',
+            trigger: 'blur'
+          }
+        ],
+        weekList: [
+          {
+            required: true,
+            type: 'array',
+            min: 1,
+            message: '上课周期不能为空',
             trigger: 'blur'
           }
         ],
@@ -215,6 +224,11 @@ export default {
       saveCourseVisible: false,
       saveTeacherVisible: false
     }
+  },
+  computed: {
+    ...mapState({
+      userInfo: state => state.authentication.userInfo
+    })
   },
   methods: {
     ...mapActions(['GetClassroomRefList', 'GetCourseRefList', 'GetTeacherRefList', 'BatchSaveCourseScheduling']),
@@ -270,6 +284,7 @@ export default {
           this.form.weekList = this.weekList
           this.form.attendTime = moment(this.form.attendTime, 'HH:mm').format('HH:mm:ss')
           this.form.finishTime = moment(this.form.finishTime, 'HH:mm').format('HH:mm:ss')
+          this.form.username = this.userInfo?.username || ''
           this.BatchSaveCourseScheduling(this.form).then(() => {
             this.submitBtnLoading = false
             this.resetData()

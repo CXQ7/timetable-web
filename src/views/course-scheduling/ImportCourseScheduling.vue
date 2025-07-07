@@ -48,6 +48,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
   name: 'ImportCourseScheduling',
   props: {
@@ -63,6 +65,11 @@ export default {
       fileList: [],
       uploading: false
     }
+  },
+  computed: {
+    ...mapState({
+      userInfo: state => state.authentication.userInfo
+    })
   },
   methods: {
     handleFileChange (file) {
@@ -83,6 +90,7 @@ export default {
       this.uploading = true
       const formData = new FormData()
       formData.append('file', this.selectedFile.raw)
+      formData.append('username', this.userInfo?.username || '')
 
       // 使用axios直接上传文件
       this.$axios.post('/course-scheduling/import', formData, {

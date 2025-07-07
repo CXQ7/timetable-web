@@ -44,7 +44,7 @@
 
 <script>
 import moment from 'moment'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 export default {
   name: 'ExportCourseScheduling',
@@ -75,6 +75,11 @@ export default {
       },
       submitBtnLoading: false
     }
+  },
+  computed: {
+    ...mapState({
+      userInfo: state => state.authentication.userInfo
+    })
   },
   methods: {
     ...mapActions(['GetClassroomRefList']),
@@ -111,7 +116,8 @@ export default {
             '?startDate=' + moment(this.form.dates[0]).format('YYYY-MM-DD') +
             '&endDate=' + moment(this.form.dates[1]).format('YYYY-MM-DD') +
             '&sheetNamingType=' + this.form.sheetNamingType +
-            '&isShowWeek=' + this.form.isShowWeek
+            '&isShowWeek=' + this.form.isShowWeek +
+            '&username=' + encodeURIComponent(this.userInfo?.username || '')
 
           if (this.currentClassroom && this.currentClassroom.id) {
             url += '&classroomId=' + this.currentClassroom.id
