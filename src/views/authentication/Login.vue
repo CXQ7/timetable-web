@@ -84,9 +84,11 @@ export default {
           this.$store
             .dispatch('Login', this.loginForm)
             .then(() => {
+              // 登录成功后设置记住我标记
               if (this.checked) {
                 localStorage.setItem('rememberMe', 'true')
               }
+              this.$message.success('登录成功')
               this.$router.push('/main')
             })
             .catch((err) => {
@@ -115,14 +117,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url('~@/assets/jvav-bg.jpg') no-repeat center center;
+  background: url("~@/assets/jvav-bg.jpg") no-repeat center center;
   position: relative;
-  background-size: cover;  padding: 20px;
+  background-size: cover;
+  padding: 20px;
   box-sizing: border-box;
 }
 
 .login-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;

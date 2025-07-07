@@ -292,7 +292,7 @@ export default {
       'getScheduleSettings'
     ]),
     ...mapState({
-      userInfo: state => state.authentication.userInfo
+      userInfo: (state) => state.authentication.userInfo
     }),
     calendarHiddenDays () {
       const hidden = []
@@ -666,6 +666,10 @@ export default {
   mounted () {
     this.init()
     this.applyTheme(this.currentTheme)
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+    if (userInfo) {
+      this.$store.commit('SET_USER_INFO', userInfo)
+    }
   },
   beforeDestroy () {
     // 清除定时器

@@ -153,12 +153,21 @@ export default {
 
           this.$store
             .dispatch('SaveRegister', registerData)
-            .then(() => {
-              this.$message.success('注册成功')
-              this.$router.push('/login')
+            .then((result) => {
+              // 注册成功
+              this.$message.success('注册成功，欢迎加入！')
+
+              // 可以选择直接登录或跳转到登录页
+              // 这里选择跳转到登录页
+              setTimeout(() => {
+                this.$router.push('/login')
+              }, 1500)
             })
             .catch((err) => {
-              this.$message.error(err.message || '注册失败')
+              // 简化错误处理，显示友好的错误信息
+              const errorMessage =
+                err && err.message ? err.message : '注册失败，请重试'
+              this.$message.error(errorMessage)
             })
             .finally(() => {
               this.registerLoading = false

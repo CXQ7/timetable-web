@@ -158,8 +158,15 @@
                   type="primary"
                   :size="isMobile ? 'small' : 'medium'"
                   @click="saveScheduleSettings"
+                  style="margin-right: 10px"
                 >
                   保存课表设置
+                </el-button>
+                <el-button
+                  :size="isMobile ? 'small' : 'medium'"
+                  @click="refreshSettings"
+                >
+                  从服务器刷新
                 </el-button>
               </el-form-item>
             </el-form>
@@ -258,10 +265,11 @@
 
 <script>
 import { mapState } from 'vuex'
-import { saveCalendarSettings, updateCalendarSettings } from '@/api/settings'
+import userMixin from '@/mixins/userMixin'
 
 export default {
   name: 'SystemSettings',
+  mixins: [userMixin],
   data () {
     return {
       loading: false, // 加载状态
@@ -273,7 +281,7 @@ export default {
       },
       scheduleForm: {
         name: '',
-        firstWeekDay: '',
+        firstWeekDay: '2025-07-07', // 默认设置为有效日期
         classesPerDay: 10,
         showSaturday: true,
         showSunday: false,
@@ -311,8 +319,16 @@ export default {
         .dispatch('UpdateUserInfo', this.userForm)
         .then(() => {
           this.$message.success('用户设置保存成功')
-          localStorage.setItem('userInfo', JSON.stringify(this.userInfo))
-          localStorage.setItem('token', this.userInfo.token)
+          // 安全地访问userInfo和token
+          const userInfo = this.$store.state.authentication.userInfo
+          const token = this.$store.state.authentication.token
+
+          if (userInfo) {
+            localStorage.setItem('userInfo', JSON.stringify(userInfo))
+          }
+          if (token) {
+            localStorage.setItem('token', token)
+          }
         })
         .catch((err) => {
           this.$message.error(err.message || '保存失败')
@@ -326,17 +342,124 @@ export default {
     async saveScheduleSettings () {
       this.loading = true
       try {
-        // 先尝试更新
-        await updateCalendarSettings(this.scheduleForm)
-        this.$message.success('课表设置更新成功')
-      } catch (err) {
-        // 如果更新失败，尝试插入
-        try {
-          await saveCalendarSettings(this.scheduleForm)
-          this.$message.success('课表设置保存成功')
-        } catch (saveErr) {
-          this.$message.error(saveErr.message || '课表设置保存失败')
+        // 准备要保存的数据，确保日期格式正确
+        const settingsToSave = { ...this.scheduleForm }
+
+        // 处理firstWeekDay，确保格式正确且不为空
+        let formattedDate = '2025-07-07' // 默认值
+
+        if (settingsToSave.firstWeekDay) {
+          if (settingsToSave.firstWeekDay instanceof Date) {
+            // Date对象，直接格式化
+            const year = settingsToSave.firstWeekDay.getFullYear()
+            const month = String(
+              settingsToSave.firstWeekDay.getMonth() + 1
+            ).padStart(2, '0')
+            const day = String(settingsToSave.firstWeekDay.getDate()).padStart(
+              2,
+              '0'
+            )
+            formattedDate = `${year}-${month}-${day}`
+          } else if (
+            typeof settingsToSave.firstWeekDay === 'string' &&
+            settingsToSave.firstWeekDay.trim() !== ''
+          ) {
+            // 非空字符串，验证格式
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+            if (dateRegex.test(settingsToSave.firstWeekDay.trim())) {
+              // 已经是正确格式
+              formattedDate = settingsToSave.firstWeekDay.trim()
+            } else {
+              // 尝试解析并重新格式化
+              const date = new Date(settingsToSave.firstWeekDay.trim())
+              if (!isNaN(date.getTime())) {
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const day = String(date.getDate()).padStart(2, '0')
+                formattedDate = `${year}-${month}-${day}`
+              }
+              // 如果解析失败，保持默认值
+            }
+          }
+          // 如果是其他类型或空字符串，使用默认值
         }
+
+        // 确保设置有效的日期
+        settingsToSave.firstWeekDay = formattedDate
+
+        console.log(
+          '发送到后端的完整数据:',
+          JSON.stringify(settingsToSave, null, 2)
+        )
+        console.log(
+          '发送到后端的firstWeekDay:',
+          settingsToSave.firstWeekDay,
+          '类型:',
+          typeof settingsToSave.firstWeekDay
+        )
+
+        // 使用store的action来保存设置
+        const result = await this.$store.dispatch(
+          'settings/SaveScheduleSettings',
+          settingsToSave
+        )
+        if (result && result.success) {
+          this.$message.success('课表设置保存成功')
+        } else {
+          this.$message.error(result.message || '课表设置保存失败')
+        }
+      } catch (err) {
+        console.error('保存课表设置失败:', err)
+        this.$message.error(err.message || '课表设置保存失败')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // 从服务器刷新设置
+    async refreshSettings () {
+      this.loading = true
+      try {
+        const result = await this.$store.dispatch(
+          'settings/RefreshSettingsFromServer'
+        )
+        if (result && result.success) {
+          // 更新表单数据
+          const settings = this.$store.getters['settings/getScheduleSettings']
+          this.scheduleForm = { ...this.scheduleForm, ...settings }
+
+          // 如果firstWeekDay是字符串，转换为Date对象供日期选择器使用
+          if (
+            this.scheduleForm.firstWeekDay &&
+            typeof this.scheduleForm.firstWeekDay === 'string'
+          ) {
+            const dateStr = this.scheduleForm.firstWeekDay.trim()
+            if (dateStr !== '') {
+              const date = new Date(dateStr)
+              if (!isNaN(date.getTime())) {
+                this.scheduleForm.firstWeekDay = date
+              } else {
+                // 如果解析失败，使用默认日期
+                this.scheduleForm.firstWeekDay = new Date('2025-07-07')
+              }
+            } else {
+              // 如果是空字符串，使用默认日期
+              this.scheduleForm.firstWeekDay = new Date('2025-07-07')
+            }
+          } else if (!this.scheduleForm.firstWeekDay) {
+            // 如果没有firstWeekDay，使用默认日期
+            this.scheduleForm.firstWeekDay = new Date('2025-07-07')
+          }
+
+          const classTimes = this.$store.getters['settings/getClassTimes']
+          this.classTimes = [...classTimes]
+
+          this.$message.success('设置已从服务器刷新')
+        } else {
+          this.$message.error(result.message || '从服务器刷新设置失败')
+        }
+      } catch (err) {
+        this.$message.error(err.message || '从服务器刷新设置失败')
       } finally {
         this.loading = false
       }
@@ -402,33 +525,76 @@ export default {
       this.windowWidth = window.innerWidth
     }
   },
-  mounted () {
+  async mounted () {
     this.loading = true
-    if (!this.userInfo) {
-      this.$message.warning('请先登录')
+
+    try {
+      // 确保用户状态已正确初始化
+      await this.ensureUserState()
+
+      // 使用安全的用户信息访问
+      const userInfo = this.safeUserInfo
+      if (!userInfo.username) {
+        throw new Error('用户信息不完整')
+      }
+
+      // 安全地复制用户信息
+      this.userForm = {
+        ...this.userForm,
+        avatar_url: userInfo.avatar_url || '',
+        username: userInfo.username || '',
+        email: userInfo.email || '',
+        phone: userInfo.phone || ''
+      }
+
+      // 获取课表设置
+      const result = await this.$store.dispatch('settings/GetSettings')
+
+      // 从store获取设置并赋值给表单
+      const settings = this.$store.getters['settings/getScheduleSettings']
+      this.scheduleForm = { ...this.scheduleForm, ...settings }
+
+      // 如果firstWeekDay是字符串，转换为Date对象供日期选择器使用
+      if (
+        this.scheduleForm.firstWeekDay &&
+        typeof this.scheduleForm.firstWeekDay === 'string'
+      ) {
+        const dateStr = this.scheduleForm.firstWeekDay.trim()
+        if (dateStr !== '') {
+          const date = new Date(dateStr)
+          if (!isNaN(date.getTime())) {
+            this.scheduleForm.firstWeekDay = date
+          } else {
+            // 如果解析失败，使用默认日期
+            this.scheduleForm.firstWeekDay = new Date('2025-07-07')
+          }
+        } else {
+          // 如果是空字符串，使用默认日期
+          this.scheduleForm.firstWeekDay = new Date('2025-07-07')
+        }
+      } else if (!this.scheduleForm.firstWeekDay) {
+        // 如果没有firstWeekDay，使用默认日期
+        this.scheduleForm.firstWeekDay = new Date('2025-07-07')
+      }
+
+      // 获取上课时间数据
+      const classTimes = this.$store.getters['settings/getClassTimes']
+      this.classTimes = [...classTimes]
+
+      // 根据数据源显示不同的提示
+      if (result && result.source === 'server') {
+        console.log('设置已从服务器同步')
+      } else if (result && result.source === 'localStorage') {
+        console.log('使用本地缓存设置')
+      }
+    } catch (err) {
+      console.error('初始化失败:', err)
+      this.$message.warning('初始化失败，请重新登录')
       this.$router.replace('/login')
       return
+    } finally {
+      this.loading = false
     }
-    this.userForm = { ...this.userForm, ...this.userInfo }
-
-    // 获取课表设置
-    this.$store
-      .dispatch('settings/GetSettings')
-      .then(() => {
-        // 从store获取设置并赋值给表单
-        const settings = this.$store.getters['settings/getScheduleSettings']
-        this.scheduleForm = { ...this.scheduleForm, ...settings }
-
-        // 获取上课时间数据
-        const classTimes = this.$store.getters['settings/getClassTimes']
-        this.classTimes = [...classTimes]
-      })
-      .catch((err) => {
-        console.error('获取设置失败:', err)
-      })
-      .finally(() => {
-        this.loading = false
-      })
 
     window.addEventListener('resize', this.handleResize)
   },

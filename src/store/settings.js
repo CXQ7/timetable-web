@@ -1,3 +1,9 @@
+import {
+  getCalendarSettings,
+  saveCalendarSettings,
+  updateCalendarSettings
+} from '@/api/settings'
+
 const state = {
   // 课表显示设置
   scheduleSettings: {
@@ -50,7 +56,44 @@ const actions = {
   // 获取设置
   async GetSettings ({ commit }) {
     try {
-      // 从localStorage获取设置，如果没有则使用默认值
+      // 首先尝试从服务器获取设置
+      try {
+        const res = await getCalendarSettings()
+        if (res && res.data) {
+          const serverData = res.data
+
+          // 如果服务器有设置数据，优先使用服务器数据
+          if (serverData.scheduleSettings) {
+            commit('SET_SCHEDULE_SETTINGS', serverData.scheduleSettings)
+          }
+          if (serverData.classTimes) {
+            commit('SET_CLASS_TIMES', serverData.classTimes)
+          }
+
+          // 同步到本地存储
+          if (serverData.scheduleSettings) {
+            localStorage.setItem(
+              'scheduleSettings',
+              JSON.stringify(serverData.scheduleSettings)
+            )
+          }
+          if (serverData.classTimes) {
+            localStorage.setItem(
+              'classTimes',
+              JSON.stringify(serverData.classTimes)
+            )
+          }
+
+          return { success: true, source: 'server' }
+        }
+      } catch (serverError) {
+        console.warn(
+          '从服务器获取设置失败，使用本地存储:',
+          serverError.message
+        )
+      }
+
+      // 如果服务器获取失败，从localStorage获取设置
       const savedSettings = localStorage.getItem('scheduleSettings')
       const savedClassTimes = localStorage.getItem('classTimes')
 
@@ -62,7 +105,7 @@ const actions = {
         commit('SET_CLASS_TIMES', JSON.parse(savedClassTimes))
       }
 
-      return { success: true }
+      return { success: true, source: 'localStorage' }
     } catch (error) {
       console.error('获取设置失败:', error)
       return { success: false, message: error.message }
@@ -72,12 +115,40 @@ const actions = {
   // 保存课表设置
   async SaveScheduleSettings ({ commit, state }, settings) {
     try {
+      console.log('Store收到的设置数据:', JSON.stringify(settings, null, 2))
+
       commit('SET_SCHEDULE_SETTINGS', settings)
+
       // 保存到localStorage
       localStorage.setItem(
         'scheduleSettings',
         JSON.stringify(state.scheduleSettings)
       )
+
+      // 尝试同步到服务器
+      try {
+        const settingsData = {
+          scheduleSettings: state.scheduleSettings,
+          classTimes: state.classTimes
+        }
+
+        console.log(
+          '发送到后端API的完整数据:',
+          JSON.stringify(settingsData, null, 2)
+        )
+
+        // 先尝试更新，如果失败则保存
+        try {
+          await updateCalendarSettings(settingsData)
+        } catch (updateError) {
+          // 如果更新失败，可能是记录不存在，尝试保存
+          await saveCalendarSettings(settingsData)
+        }
+      } catch (serverError) {
+        console.warn('同步设置到服务器失败:', serverError.message)
+        // 即使服务器同步失败，本地保存成功也返回成功
+      }
+
       return { success: true }
     } catch (error) {
       console.error('保存课表设置失败:', error)
@@ -89,8 +160,29 @@ const actions = {
   async SaveClassTimes ({ commit, state }, classTimes) {
     try {
       commit('SET_CLASS_TIMES', classTimes)
+
       // 保存到localStorage
       localStorage.setItem('classTimes', JSON.stringify(state.classTimes))
+
+      // 尝试同步到服务器
+      try {
+        const settingsData = {
+          scheduleSettings: state.scheduleSettings,
+          classTimes: state.classTimes
+        }
+
+        // 先尝试更新，如果失败则保存
+        try {
+          await updateCalendarSettings(settingsData)
+        } catch (updateError) {
+          // 如果更新失败，可能是记录不存在，尝试保存
+          await saveCalendarSettings(settingsData)
+        }
+      } catch (serverError) {
+        console.warn('同步设置到服务器失败:', serverError.message)
+        // 即使服务器同步失败，本地保存成功也返回成功
+      }
+
       return { success: true }
     } catch (error) {
       console.error('保存上课时间设置失败:', error)
@@ -99,15 +191,80 @@ const actions = {
   },
 
   // 添加上课时间段
-  AddClassTime ({ commit, state }, classTime) {
+  async AddClassTime ({ commit, state }, classTime) {
     commit('ADD_CLASS_TIME', classTime)
     localStorage.setItem('classTimes', JSON.stringify(state.classTimes))
+
+    // 同步到服务器
+    try {
+      const settingsData = {
+        scheduleSettings: state.scheduleSettings,
+        classTimes: state.classTimes
+      }
+
+      try {
+        await updateCalendarSettings(settingsData)
+      } catch (updateError) {
+        await saveCalendarSettings(settingsData)
+      }
+    } catch (serverError) {
+      console.warn('同步设置到服务器失败:', serverError.message)
+    }
   },
 
   // 删除上课时间段
-  RemoveClassTime ({ commit, state }, index) {
+  async RemoveClassTime ({ commit, state }, index) {
     commit('REMOVE_CLASS_TIME', index)
     localStorage.setItem('classTimes', JSON.stringify(state.classTimes))
+
+    // 同步到服务器
+    try {
+      const settingsData = {
+        scheduleSettings: state.scheduleSettings,
+        classTimes: state.classTimes
+      }
+
+      try {
+        await updateCalendarSettings(settingsData)
+      } catch (updateError) {
+        await saveCalendarSettings(settingsData)
+      }
+    } catch (serverError) {
+      console.warn('同步设置到服务器失败:', serverError.message)
+    }
+  },
+
+  // 强制从服务器刷新设置
+  async RefreshSettingsFromServer ({ commit }) {
+    try {
+      const res = await getCalendarSettings()
+      if (res && res.data) {
+        const serverData = res.data
+
+        if (serverData.scheduleSettings) {
+          commit('SET_SCHEDULE_SETTINGS', serverData.scheduleSettings)
+          localStorage.setItem(
+            'scheduleSettings',
+            JSON.stringify(serverData.scheduleSettings)
+          )
+        }
+
+        if (serverData.classTimes) {
+          commit('SET_CLASS_TIMES', serverData.classTimes)
+          localStorage.setItem(
+            'classTimes',
+            JSON.stringify(serverData.classTimes)
+          )
+        }
+
+        return { success: true, data: serverData }
+      } else {
+        throw new Error('服务器未返回有效数据')
+      }
+    } catch (error) {
+      console.error('从服务器刷新设置失败:', error)
+      return { success: false, message: error.message }
+    }
   }
 }
 

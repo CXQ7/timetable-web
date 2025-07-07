@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Main from '@/views/Main.vue'
+import store from '@/store'
 
 Vue.use(VueRouter)
 
@@ -27,11 +28,13 @@ const routes = [
     children: [
       {
         path: '/course-scheduling',
-        component: () => import('@/views/course-scheduling/CourseScheduling.vue')
+        component: () =>
+          import('@/views/course-scheduling/CourseScheduling.vue')
       },
       {
         path: '/course-scheduling-list',
-        component: () => import('@/views/course-scheduling-list/CourseSchedulingList.vue')
+        component: () =>
+          import('@/views/course-scheduling-list/CourseSchedulingList.vue')
       },
       {
         path: '/classroom',
@@ -66,15 +69,38 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.matched.some(record => record.meta.requireAuth)) {
-    const isAuthenticated = localStorage.getItem('token')
-    if (!isAuthenticated) {
+  if (to.matched.some((record) => record.meta.requireAuth)) {
+    // 检查store中的认证状态
+    const isLoggedIn = store.getters.isLoggedIn
+    const hasToken = localStorage.getItem('token')
+
+    // 如果store中没有用户信息但localStorage有token，尝试恢复状态
+    if (!isLoggedIn && hasToken) {
+      store
+        .dispatch('InitializeUserState')
+        .then((result) => {
+          if (result.success) {
+            next()
+          } else {
+            next({
+              path: '/login',
+              query: { redirect: to.fullPath }
+            })
+          }
+        })
+        .catch(() => {
+          next({
+            path: '/login',
+            query: { redirect: to.fullPath }
+          })
+        })
+    } else if (isLoggedIn) {
+      next()
+    } else {
       next({
-        path: '/',
+        path: '/login',
         query: { redirect: to.fullPath }
       })
-    } else {
-      next()
     }
   } else {
     next()
