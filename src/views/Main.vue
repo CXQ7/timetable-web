@@ -99,9 +99,9 @@ export default {
 
     checkReminderDot () {
       // 先判断是否开启了站内提醒
-      this.GetReminderSettings().then((settings) => {
+      this.GetReminderSettings({ username: this.userInfo.username }).then((settings) => {
         if (settings.inSite) {
-          this.GetUpcomingReminders({ limit: 1 }).then((reminders) => {
+          this.GetUpcomingReminders({ username: this.userInfo.username, limit: 1 }).then((reminders) => {
             if (reminders && reminders.length > 0) {
               this.$store.commit('SET_REMINDER_DOT', true)
             }

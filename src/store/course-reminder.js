@@ -11,9 +11,9 @@ const courseReminder = {
   },
   actions: {
     // 拉取用户的提醒设置
-    GetReminderSettings ({ commit }) {
+    GetReminderSettings ({ commit }, params) {
       return new Promise((resolve, reject) => {
-        Api.getReminderSettings()
+        Api.getReminderSettings(params)
           .then(res => resolve(res.data))
           .catch(err => reject(err))
       })
