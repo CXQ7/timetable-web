@@ -4,8 +4,8 @@
       ref="registerForm"
       :model="registerForm"
       :rules="rules"
-      class="registerForm" >
-
+      class="registerForm"
+    >
       <h3 class="registerTitle">Register</h3>
 
       <!-- 用户名输入框 -->
@@ -14,7 +14,19 @@
           v-model="registerForm.username"
           auto-complete="off"
           placeholder="请输入用户名"
-          type="text" >
+          type="text"
+        >
+        </el-input>
+      </el-form-item>
+
+      <!-- 邮件输入框 -->
+      <el-form-item prop="email">
+        <el-input
+          v-model="registerForm.email"
+          auto-complete="off"
+          placeholder="请输入邮箱"
+          type="email"
+        >
         </el-input>
       </el-form-item>
 
@@ -24,7 +36,8 @@
           v-model="registerForm.password"
           auto-complete="false"
           placeholder="请输入密码"
-          type="password" >
+          type="password"
+        >
         </el-input>
       </el-form-item>
 
@@ -34,7 +47,8 @@
           v-model="registerForm.confirmPassword"
           auto-complete="false"
           placeholder="再次输入密码"
-          type="password" >
+          type="password"
+        >
         </el-input>
       </el-form-item>
 
@@ -43,18 +57,15 @@
         style="width: 100%"
         type="primary"
         @click="submitRegister"
-        :loading="registerLoading" >
+        :loading="registerLoading"
+      >
         立即注册
       </el-button>
 
       <!-- 跳转登录 -->
       <div class="login-link">
         已有账号？
-        <el-link
-          type="primary"
-          @click="goToLogin">
-          立即登录
-        </el-link>
+        <el-link type="primary" @click="goToLogin"> 立即登录 </el-link>
       </div>
     </el-form>
   </div>
@@ -64,6 +75,18 @@
 export default {
   name: 'Register',
   data () {
+    // 邮箱验证规则
+    const validateEmail = (rule, value, callback) => {
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (value === '') {
+        callback(new Error('请输入邮箱'))
+      } else if (!emailPattern.test(value)) {
+        callback(new Error('请输入有效的邮箱地址'))
+      } else {
+        callback()
+      }
+    }
+
     // 密码验证规则
     const validatePassword = (rule, value, callback) => {
       if (value === '') {
@@ -94,8 +117,8 @@ export default {
 
       registerForm: {
         username: '',
-        password: '',
-        confirmPassword: ''
+        email: '',
+        password: ''
       },
 
       rules: {
@@ -107,6 +130,10 @@ export default {
             message: '长度在 3 到 16 个字符',
             trigger: 'blur'
           }
+        ],
+        email: [
+          { required: true, message: '请输入邮箱', trigger: 'blur' },
+          { validator: validateEmail, trigger: 'blur' }
         ],
         password: [{ validator: validatePassword, trigger: 'blur' }],
         confirmPassword: [
@@ -123,12 +150,13 @@ export default {
           this.registerLoading = true
           const { confirmPassword, ...registerData } = this.registerForm
 
-          this.$store.dispatch('SaveRegister', registerData)
+          this.$store
+            .dispatch('SaveRegister', registerData)
             .then(() => {
               this.$message.success('注册成功')
               this.$router.push('/login')
             })
-            .catch(err => {
+            .catch((err) => {
               this.$message.error(err.message || '注册失败')
             })
             .finally(() => {
@@ -162,7 +190,7 @@ export default {
 }
 
 .register-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -191,17 +219,6 @@ export default {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
-.registerForm::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #764ba2, #667eea, #5dade2, #3498db, #2980b9);
-  border-radius: 16px 16px 0 0;
-}
-
 .registerTitle {
   margin: 0 auto 30px auto;
   text-align: center;
@@ -209,13 +226,13 @@ export default {
   font-weight: 700;
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
   position: relative;
 }
 
 .registerTitle::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -10px;
   left: 50%;
@@ -267,13 +284,18 @@ export default {
 }
 
 .el-button::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -333,7 +355,6 @@ export default {
 
 .theme-dark .registerTitle {
   background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
-  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

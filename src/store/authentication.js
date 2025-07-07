@@ -2,7 +2,7 @@ import * as Api from '@/api/authentication'
 
 const authentication = {
   state: {
-    userInfo: null,
+    userInfo: {},
     token: null
   },
   mutations: {
@@ -20,8 +20,7 @@ const authentication = {
           // 模拟登录成功
           const userInfo = {
             username: 'admin',
-            name: '管理员',
-            roles: ['admin'],
+            password: '123456',
             email: 'example@qq.com',
             phone: '12345678901'
           }

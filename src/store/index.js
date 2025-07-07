@@ -8,15 +8,13 @@ import color from '@/store/color'
 import report from '@/store/report'
 import authentication from './authentication'
 import courseReminder from '@/store/course-reminder'
+import settings from '@/store/settings'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  state: {
-  },
-  mutations: {
-  },
-  actions: {
-  },
+  state: {},
+  mutations: {},
+  actions: {},
   modules: {
     authentication,
     teacher,
@@ -25,6 +23,7 @@ export default new Vuex.Store({
     courseScheduling,
     color,
     report,
-    courseReminder
+    courseReminder,
+    settings
   }
 })

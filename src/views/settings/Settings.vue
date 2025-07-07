@@ -169,26 +169,98 @@
     </div>
 
     <!-- 上课时间设置弹窗 -->
-    <class-time-dialog
+    <el-dialog
+      title="上课时间设置"
       :visible.sync="classTimeDialogVisible"
-      :class-times="classTimes"
-      :is-mobile="isMobile"
-      @save="saveClassTimes"
-      @add="addClassTime"
-      @remove="removeClassTime"
-    />
+      :width="isMobile ? '95%' : '70%'"
+      :lock-scroll="true"
+      :close-on-click-modal="false"
+      :close-on-press-escape="true"
+      :destroy-on-close="false"
+      :append-to-body="true"
+      custom-class="class-time-dialog"
+      center
+    >
+      <el-table
+        :data="localClassTimes"
+        border
+        style="width: 100%"
+        :key="'class-times-table'"
+      >
+        <el-table-column
+          prop="section"
+          label="节次"
+          width="80"
+        ></el-table-column>
+        <el-table-column label="开始时间">
+          <template slot-scope="scope">
+            <el-time-picker
+              v-model="scope.row.startTime"
+              format="HH:mm"
+              value-format="HH:mm"
+              :size="isMobile ? 'small' : 'medium'"
+              placeholder="选择时间"
+            >
+            </el-time-picker>
+          </template>
+        </el-table-column>
+        <el-table-column label="结束时间">
+          <template slot-scope="scope">
+            <el-time-picker
+              v-model="scope.row.endTime"
+              format="HH:mm"
+              value-format="HH:mm"
+              :size="isMobile ? 'small' : 'medium'"
+              placeholder="选择时间"
+            >
+            </el-time-picker>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="100">
+          <template slot-scope="scope">
+            <el-button
+              @click="removeClassTime(scope.$index)"
+              type="text"
+              :size="isMobile ? 'small' : 'medium'"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div style="margin-top: 20px">
+        <el-button
+          @click="addClassTime"
+          type="primary"
+          :size="isMobile ? 'small' : 'medium'"
+        >
+          添加时间段
+        </el-button>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button
+          @click="classTimeDialogVisible = false"
+          :size="isMobile ? 'small' : 'medium'"
+        >
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :size="isMobile ? 'small' : 'medium'"
+          @click="saveClassTimes"
+        >
+          保存
+        </el-button>
+      </span>
+    </el-dialog>
   </el-card>
 </template>
 
 <script>
 import { mapState } from 'vuex'
-import ClassTimeDialog from './EditClassTime.vue'
 
 export default {
   name: 'SystemSettings',
-  components: {
-    ClassTimeDialog
-  },
   data () {
     return {
       loading: false, // 加载状态
@@ -219,6 +291,15 @@ export default {
     }),
     isMobile () {
       return this.windowWidth < 768
+    },
+    // 使用computed来管理上课时间数据，避免直接修改
+    localClassTimes: {
+      get () {
+        return this.classTimes
+      },
+      set (value) {
+        this.classTimes = value
+      }
     }
   },
   methods: {
@@ -261,37 +342,48 @@ export default {
 
     // 显示上课时间设置弹窗
     showClassTimeSettings () {
-      // 加载默认上课时间数据
-      this.classTimes = [
-        { section: 1, startTime: '08:00', endTime: '08:45' },
-        { section: 2, startTime: '08:55', endTime: '09:40' }
-      ]
+      // 从store获取上课时间数据
+      const classTimes = this.$store.getters['settings/getClassTimes']
+      // 使用Vue.set确保响应式更新
+      this.$set(this, 'classTimes', JSON.parse(JSON.stringify(classTimes)))
       this.classTimeDialogVisible = true
     },
 
     // 添加上课时间段
     addClassTime () {
       const newSection = this.classTimes.length + 1
-      this.classTimes.push({
+      const newTime = {
         section: newSection,
         startTime: '',
         endTime: ''
-      })
+      }
+      this.classTimes.push(newTime)
     },
 
     // 删除上课时间段
     removeClassTime (index) {
-      this.classTimes.splice(index, 1)
+      this.$delete(this.classTimes, index)
       // 重新编号
       this.classTimes.forEach((item, i) => {
-        item.section = i + 1
+        this.$set(item, 'section', i + 1)
       })
     },
 
     // 保存上课时间设置
     saveClassTimes () {
-      this.classTimeDialogVisible = false
-      this.$message.success('上课时间设置保存成功')
+      this.$store
+        .dispatch('settings/SaveClassTimes', this.classTimes)
+        .then((res) => {
+          if (res && res.success) {
+            this.$message.success('上课时间设置保存成功')
+            this.classTimeDialogVisible = false
+          } else {
+            this.$message.error(res.message || '保存失败')
+          }
+        })
+        .catch((err) => {
+          this.$message.error(err.message || '保存失败')
+        })
     },
 
     // 处理窗口大小变化
@@ -307,7 +399,26 @@ export default {
       return
     }
     this.userForm = { ...this.userForm, ...this.userInfo }
-    this.loading = false
+
+    // 获取课表设置
+    this.$store
+      .dispatch('settings/GetSettings')
+      .then(() => {
+        // 从store获取设置并赋值给表单
+        const settings = this.$store.getters['settings/getScheduleSettings']
+        this.scheduleForm = { ...this.scheduleForm, ...settings }
+
+        // 获取上课时间数据
+        const classTimes = this.$store.getters['settings/getClassTimes']
+        this.classTimes = [...classTimes]
+      })
+      .catch((err) => {
+        console.error('获取设置失败:', err)
+      })
+      .finally(() => {
+        this.loading = false
+      })
+
     window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy () {
@@ -425,5 +536,24 @@ export default {
     width: 70px;
     height: 70px;
   }
+}
+
+/* 上课时间设置弹窗样式 */
+.class-time-dialog {
+  transition: none !important;
+}
+
+.class-time-dialog .el-dialog__body {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.class-time-dialog .el-table {
+  margin-bottom: 0;
+}
+
+.class-time-dialog .el-time-picker {
+  width: 100%;
 }
 </style>

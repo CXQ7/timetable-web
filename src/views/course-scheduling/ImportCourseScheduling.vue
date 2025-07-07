@@ -21,7 +21,7 @@
           <p>支持.xlsx和.xls格式文件，文件大小不超过10MB</p>
         </div>
       </el-upload>
-      
+
       <el-alert
         title="Excel文件格式要求"
         type="info"
@@ -33,11 +33,11 @@
         </div>
       </el-alert>
     </div>
-    
+
     <div slot="footer" class="dialog-footer">
       <el-button @click="close">取消</el-button>
-      <el-button 
-        type="primary" 
+      <el-button
+        type="primary"
         @click="uploadFile"
         :loading="uploading"
         :disabled="!selectedFile">
@@ -69,21 +69,21 @@ export default {
       this.selectedFile = file
       this.fileList = [file]
     },
-    
+
     handleExceed () {
       this.$message.warning('最多只能选择1个文件')
     },
-    
+
     uploadFile () {
       if (!this.selectedFile) {
         this.$message.error('请先选择文件')
         return
       }
-      
+
       this.uploading = true
       const formData = new FormData()
       formData.append('file', this.selectedFile.raw)
-      
+
       // 使用axios直接上传文件
       this.$axios.post('/course-scheduling/import', formData, {
         headers: {
@@ -99,13 +99,13 @@ export default {
         this.uploading = false
       })
     },
-    
+
     close () {
       this.resetData()
       this.$emit('on-close')
       this.dialogVisible = false
     },
-    
+
     resetData () {
       this.selectedFile = null
       this.fileList = []
@@ -114,14 +114,14 @@ export default {
         this.$refs.upload.clearFiles()
       }
     },
-    
+
     handleClose (done) {
       this.resetData()
       this.$emit('on-close')
       done()
     }
   },
-  
+
   watch: {
     visible (val) {
       if (val) {
@@ -140,4 +140,4 @@ export default {
 .dialog-footer {
   text-align: right;
 }
-</style> 
+</style>

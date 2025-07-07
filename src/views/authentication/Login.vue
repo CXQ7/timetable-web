@@ -4,8 +4,8 @@
       ref="loginForm"
       :model="loginForm"
       :rules="rules"
-      class="loginForm">
-
+      class="loginForm"
+    >
       <h3 class="loginTitle">Login</h3>
 
       <!--用户名输入框-->
@@ -14,7 +14,8 @@
           v-model="loginForm.username"
           auto-complete="false"
           placeholder="请输入用户名"
-          type="text">
+          type="text"
+        >
         </el-input>
       </el-form-item>
 
@@ -25,26 +26,19 @@
           auto-complete="false"
           placeholder="请输入密码"
           type="password"
-          show-password>
+          show-password
+        >
         </el-input>
       </el-form-item>
 
       <!--功能区-->
       <div class="action-area">
-        <el-checkbox
-          v-model="checked"
-          class="Remember">
-          记住我
-        </el-checkbox>
+        <el-checkbox v-model="checked" class="Remember"> 记住我 </el-checkbox>
 
         <!-- 跳转注册 -->
         <div class="register-container">
           <span class="register-text">没有账号？</span>
-          <el-link
-            type="primary"
-            @click="goToRegister">
-            立即注册
-          </el-link>
+          <el-link type="primary" @click="goToRegister"> 立即注册 </el-link>
         </div>
       </div>
 
@@ -53,7 +47,8 @@
         style="width: 100%"
         type="primary"
         @click="submitLogin"
-        :loading="loginLoading">
+        :loading="loginLoading"
+      >
         登录
       </el-button>
     </el-form>
@@ -74,7 +69,9 @@ export default {
       },
       checked: true,
       rules: {
-        username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
         password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
       }
     }
@@ -84,14 +81,15 @@ export default {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
           this.loginLoading = true
-          this.$store.dispatch('Login', this.loginForm)
+          this.$store
+            .dispatch('Login', this.loginForm)
             .then(() => {
               if (this.checked) {
                 localStorage.setItem('rememberMe', 'true')
               }
               this.$router.push('/main')
             })
-            .catch(err => {
+            .catch((err) => {
               this.$message.error(err.message || '登录失败')
             })
             .finally(() => {
@@ -125,7 +123,7 @@ export default {
 }
 
 .login-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -154,17 +152,6 @@ export default {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
-.loginForm::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #409EFF, #5dade2, #3498db, #2980b9, #1f618d);
-  border-radius: 16px 16px 0 0;
-}
-
 .loginTitle {
   margin: 0 auto 30px auto;
   text-align: center;
@@ -178,14 +165,14 @@ export default {
 }
 
 .loginTitle::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -10px;
   left: 50%;
   transform: translateX(-50%);
   width: 50px;
   height: 3px;
-  background: linear-gradient(90deg, #409EFF, #3498db);
+  background: linear-gradient(90deg, #409eff, #3498db);
   border-radius: 2px;
 }
 
@@ -247,13 +234,18 @@ export default {
 }
 
 .el-button::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -318,7 +310,6 @@ export default {
 
 .theme-dark .loginTitle {
   background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
-  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
