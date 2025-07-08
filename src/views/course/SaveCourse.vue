@@ -1,18 +1,14 @@
 <template>
-  <el-dialog title="新增" width="450px"
-             :close-on-click-modal="false"
-             :close-on-press-escape="false"
-             :visible.sync="dialogVisible"
-             :before-close="handleClose" >
-    <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="tams-form-container">
-      <el-form-item label="名称" prop="name">
-        <el-input v-model="form.name" class="tams-form-item"></el-input>
+  <el-dialog title="新增课程" :visible.sync="visible" width="50%" @close="close">
+    <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="form-container">
+      <el-form-item label="课程名称" prop="name">
+        <el-input v-model="form.name" class="form-item"></el-input>
       </el-form-item>
-      <el-form-item label="课程时长" prop="duration">
-        <el-input-number v-model="form.duration" :step="$consts.COURSE_DURATION_STEP_MINUTE" :min="0" :max="360" class="tams-form-item"></el-input-number>
+      <el-form-item label="时长（分钟）" prop="duration">
+        <el-input-number v-model="form.duration" :step="$consts.COURSE_DURATION_STEP_MINUTE" :min="0" :max="360" class="form-item"></el-input-number>
       </el-form-item>
       <el-form-item label="课程类型" prop="courseType">
-        <el-radio-group v-model="form.courseType" class="tams-form-item">
+        <el-radio-group v-model="form.courseType" class="form-item">
           <el-radio :label="1">必修</el-radio>
           <el-radio :label="2">选修</el-radio>
         </el-radio-group>

@@ -5,10 +5,14 @@
                :close-on-press-escape="false"
                :visible.sync="dialogVisible"
                :before-close="handleClose" >
-      <el-form id="batch-save-course-scheduling-form" ref="form" :model="form" :rules="rules" label-width="100px" inline class="tams-form-container">
+      <el-form id="batch-save-course-scheduling-form" ref="form" :model="form" :rules="rules" label-width="100px" inline class="form-container">
         <el-form-item label="教室" prop="classroomId">
-          <el-select v-model="form.classroomId" class="tams-form-item" @change="classroomChange" placeholder="请选择教室">
-            <el-option v-for="item in classroomData" :key="item.id" :label="item.name" :value="item.id">
+          <el-select v-model="form.classroomId" class="form-item" @change="classroomChange" placeholder="请选择教室">
+            <el-option
+              v-for="item in classrooms"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id">
             </el-option>
             <el-option key="add-new-classroom" :value="'add-new-classroom'" style="color: #409EFF;">
               <i class="el-icon-plus"></i> 新增教室
@@ -17,8 +21,12 @@
         </el-form-item>
         <br/>
         <el-form-item label="课程" prop="courseId">
-          <el-select v-model="currentCourse" value-key="id" class="tams-form-item" @change="courseChange" placeholder="请选择课程">
-            <el-option v-for="item in courseData" :key="item.id" :value="item">
+          <el-select v-model="currentCourse" value-key="id" class="form-item" @change="courseChange" placeholder="请选择课程">
+            <el-option
+              v-for="item in courses"
+              :key="item.id"
+              :label="item.name"
+              :value="item">
               <span>{{ item.name }}</span>
               <span style="float: right; color: #8492a6; font-size: 12px;">
                 {{ (item.courseType === 1 || item.courseType === '1') ? '必修' : (item.courseType === 2 || item.courseType === '2') ? '选修' : '必修' }}
@@ -30,8 +38,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="老师" prop="teacherId">
-          <el-select v-model="form.teacherId" class="tams-form-item" @change="teacherChange" placeholder="请选择老师">
-            <el-option v-for="item in teacherData" :key="item.id" :label="item.name" :value="item.id">
+          <el-select v-model="form.teacherId" class="form-item" @change="teacherChange" placeholder="请选择老师">
+            <el-option
+              v-for="item in teachers"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id">
             </el-option>
             <el-option key="add-new-teacher" :value="'add-new-teacher'" style="color: #409EFF;">
               <i class="el-icon-plus"></i> 新增老师
@@ -47,7 +59,7 @@
           </el-date-picker>
         </el-form-item>
         <el-form-item label="上课周期" prop="weekList">
-          <el-checkbox-group v-model="weekList" :min="1" size="small">
+          <el-checkbox-group v-model="form.weekList" :min="1" size="small">
             <el-checkbox border v-for="item in weekOptions" :key="item.label" :label="item.label" :checked="item.checked">{{item.name}}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
@@ -140,10 +152,9 @@ export default {
       tipDialogVisible: false,
       errMsg: '',
       errData: [],
-      classroomData: [],
-      courseData: [],
-      teacherData: [],
-      weekList: [],
+      classrooms: [],
+      courses: [],
+      teachers: [],
       form: {},
       currentCourse: null,
       courseDuration: 0,
@@ -233,22 +244,22 @@ export default {
   methods: {
     ...mapActions(['GetClassroomRefList', 'GetCourseRefList', 'GetTeacherRefList', 'BatchSaveCourseScheduling']),
     init () {
-      this.weekList = [1, 2, 3, 4, 5]
+      this.form.weekList = [1, 2, 3, 4, 5]
       this.GetClassroomRefList().then(res => {
         if (res) {
-          this.classroomData = res
+          this.classrooms = res
         }
       }).catch(() => {
       })
       this.GetCourseRefList().then(res => {
         if (res) {
-          this.courseData = res
+          this.courses = res
         }
       }).catch(() => {
       })
       this.GetTeacherRefList().then(res => {
         if (res) {
-          this.teacherData = res
+          this.teachers = res
         }
       }).catch(() => {
       })
@@ -258,12 +269,12 @@ export default {
       this.form = {}
       this.courseDuration = 0
       this.currentCourse = null
-      this.weekList = [1, 2, 3, 4, 5]
+      this.form.weekList = [1, 2, 3, 4, 5]
       this.errMsg = ''
       this.errData = []
-      this.classroomData = []
-      this.courseData = []
-      this.teacherData = []
+      this.classrooms = []
+      this.courses = []
+      this.teachers = []
     },
     handleClose (done) {
       this.resetData()
@@ -281,7 +292,6 @@ export default {
           this.submitBtnLoading = true
           this.form.startDate = moment(this.form.dates[0]).format('YYYY-MM-DD')
           this.form.endDate = moment(this.form.dates[1]).format('YYYY-MM-DD')
-          this.form.weekList = this.weekList
           this.form.attendTime = moment(this.form.attendTime, 'HH:mm').format('HH:mm:ss')
           this.form.finishTime = moment(this.form.finishTime, 'HH:mm').format('HH:mm:ss')
           this.form.username = this.userInfo?.username || ''
@@ -338,7 +348,7 @@ export default {
       this.saveClassroomVisible = false
       this.GetClassroomRefList().then(res => {
         if (res) {
-          this.classroomData = res
+          this.classrooms = res
           if (data && data.id) {
             this.form.classroomId = data.id
           }
@@ -350,7 +360,7 @@ export default {
       this.saveCourseVisible = false
       this.GetCourseRefList().then(res => {
         if (res) {
-          this.courseData = res
+          this.courses = res
           if (data && data.id) {
             const newCourse = res.find(item => item.id === data.id)
             if (newCourse) {
@@ -372,7 +382,7 @@ export default {
       this.saveTeacherVisible = false
       this.GetTeacherRefList().then(res => {
         if (res) {
-          this.teacherData = res
+          this.teachers = res
           if (data && data.id) {
             this.form.teacherId = data.id
           }

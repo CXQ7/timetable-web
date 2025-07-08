@@ -233,8 +233,8 @@ export default {
         editable: true,
         events: [],
         headerToolbar: {
-          start: 'prev,next today',
-          center: 'title',
+          start: 'today',
+          center: 'prev,title,next',
           end: 'timeGridDay,timeGridWeek,dayGridMonth'
         },
         buttonText: {
@@ -1380,6 +1380,288 @@ body:not([class*="theme-"]) .el-form-item__label {
 .fc-event-title {
   padding: 0 !important;
   margin: 0 !important;
+}
+
+/* 日历导航按钮样式 */
+.fc-toolbar-chunk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 中间的导航区域 */
+.fc-toolbar-chunk:nth-child(2) {
+  position: relative !important;
+}
+.fc-toolbar-chunk:nth-child(2) .fc-prev-button {
+  position: absolute !important;
+  left: -20% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+.fc-toolbar-chunk:nth-child(2) .fc-next-button {
+  position: absolute !important;
+  right: -20% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+/* 让按钮组水平排列 */
+.fc-toolbar-chunk:nth-child(2) .fc-button-group {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+/* 标题在中间 */
+.fc-toolbar-chunk:nth-child(2) .fc-toolbar-title {
+  order: 1;
+  margin: 0 20px;
+}
+
+/* 前一个按钮在左边 */
+.fc-toolbar-chunk:nth-child(2) .fc-prev-button {
+  order: 0;
+}
+
+/* 后一个按钮在右边 */
+.fc-toolbar-chunk:nth-child(2) .fc-next-button {
+  order: 2;
+}
+
+.fc-toolbar-chunk .fc-button-group .fc-button {
+  min-width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.fc-toolbar-chunk .fc-button::before,
+.fc-prev-button::before,
+.fc-next-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.fc-toolbar-chunk .fc-button:hover::before,
+.fc-prev-button:hover::before,
+.fc-next-button:hover::before {
+  left: 100%;
+}
+
+.fc-toolbar-chunk .fc-button:hover,
+.fc-prev-button:hover,
+.fc-next-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.fc-toolbar-chunk .fc-button:active,
+.fc-prev-button:active,
+.fc-next-button:active {
+  transform: scale(0.95);
+}
+
+/* 默认主题导航按钮 */
+body:not([class*="theme-"]) .fc-toolbar-chunk .fc-button,
+body:not([class*="theme-"]) .fc-prev-button,
+body:not([class*="theme-"]) .fc-next-button {
+  background: linear-gradient(135deg, #409EFF, #36A3F7);
+  color: white;
+}
+
+body:not([class*="theme-"]) .fc-toolbar-chunk .fc-button:hover,
+body:not([class*="theme-"]) .fc-prev-button:hover,
+body:not([class*="theme-"]) .fc-next-button:hover {
+  background: linear-gradient(135deg, #36A3F7, #2d8cf0);
+}
+
+body:not([class*="theme-"]) .fc-toolbar-chunk .fc-button:disabled,
+body:not([class*="theme-"]) .fc-prev-button:disabled,
+body:not([class*="theme-"]) .fc-next-button:disabled {
+  background: #c0c4cc;
+  color: #ffffff;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 暗色主题导航按钮 */
+.theme-dark .fc-toolbar-chunk .fc-button,
+.theme-dark .fc-prev-button,
+.theme-dark .fc-next-button {
+  background: linear-gradient(135deg, #666666, #808080);
+  color: #ffffff;
+  border: 1px solid #555555;
+}
+
+.theme-dark .fc-toolbar-chunk .fc-button:hover,
+.theme-dark .fc-prev-button:hover,
+.theme-dark .fc-next-button:hover {
+  background: linear-gradient(135deg, #808080, #909399);
+  border-color: #777777;
+}
+
+.theme-dark .fc-toolbar-chunk .fc-button:disabled,
+.theme-dark .fc-prev-button:disabled,
+.theme-dark .fc-next-button:disabled {
+  background: #444444;
+  color: #888888;
+  border-color: #333333;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 马卡龙主题导航按钮 */
+.theme-macaron .fc-toolbar-chunk .fc-button,
+.theme-macaron .fc-prev-button,
+.theme-macaron .fc-next-button {
+  background: linear-gradient(135deg, #ffb6b9, #fae3d9);
+  color: #8b4789;
+  border: 2px solid #ffb6b9;
+}
+
+.theme-macaron .fc-toolbar-chunk .fc-button:hover,
+.theme-macaron .fc-prev-button:hover,
+.theme-macaron .fc-next-button:hover {
+  background: linear-gradient(135deg, #fae3d9, #bbded6);
+  border-color: #8ac6d1;
+  color: #61a5c2;
+}
+
+.theme-macaron .fc-toolbar-chunk .fc-button:disabled,
+.theme-macaron .fc-prev-button:disabled,
+.theme-macaron .fc-next-button:disabled {
+  background: #f0f0f0;
+  color: #cccccc;
+  border-color: #dddddd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 清新绿主题导航按钮 */
+.theme-fresh-green .fc-toolbar-chunk .fc-button,
+.theme-fresh-green .fc-prev-button,
+.theme-fresh-green .fc-next-button {
+  background: linear-gradient(135deg, #28c76f, #48da89);
+  color: white;
+  border: 1px solid #1e7e34;
+}
+
+.theme-fresh-green .fc-toolbar-chunk .fc-button:hover,
+.theme-fresh-green .fc-prev-button:hover,
+.theme-fresh-green .fc-next-button:hover {
+  background: linear-gradient(135deg, #48da89, #34ce57);
+  border-color: #28a745;
+}
+
+.theme-fresh-green .fc-toolbar-chunk .fc-button:disabled,
+.theme-fresh-green .fc-prev-button:disabled,
+.theme-fresh-green .fc-next-button:disabled {
+  background: #a8e6cf;
+  color: #ffffff;
+  border-color: #7fcdcd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 复古黄主题导航按钮 */
+.theme-retro-yellow .fc-toolbar-chunk .fc-button,
+.theme-retro-yellow .fc-prev-button,
+.theme-retro-yellow .fc-next-button {
+  background: linear-gradient(135deg, #c29f42, #d4af37);
+  color: white;
+  border: 1px solid #8b4513;
+}
+
+.theme-retro-yellow .fc-toolbar-chunk .fc-button:hover,
+.theme-retro-yellow .fc-prev-button:hover,
+.theme-retro-yellow .fc-next-button:hover {
+  background: linear-gradient(135deg, #d4af37, #b8651f);
+  border-color: #a0522d;
+}
+
+.theme-retro-yellow .fc-toolbar-chunk .fc-button:disabled,
+.theme-retro-yellow .fc-prev-button:disabled,
+.theme-retro-yellow .fc-next-button:disabled {
+  background: #ddd8b8;
+  color: #ffffff;
+  border-color: #c9c299;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 标题样式优化 */
+.fc-toolbar-title {
+  font-size: 1.8em !important;
+  font-weight: 600 !important;
+  margin: 0 20px !important;
+  text-align: center !important;
+  transition: all 0.3s ease !important;
+}
+
+/* 工具栏整体布局 */
+.fc-toolbar {
+  padding: 15px 0 !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 12px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.theme-dark .fc-toolbar {
+  background: rgba(44, 62, 80, 0.9) !important;
+}
+
+.theme-macaron .fc-toolbar {
+  background: rgba(255, 182, 185, 0.2) !important;
+}
+
+.theme-fresh-green .fc-toolbar {
+  background: rgba(40, 199, 111, 0.1) !important;
+}
+
+.theme-retro-yellow .fc-toolbar {
+  background: rgba(194, 159, 66, 0.1) !important;
+}
+
+/* 视图切换按钮样式 */
+.fc-toolbar-chunk:last-child .fc-button-group .fc-button {
+  border-radius: 8px !important;
+  min-width: 60px !important;
+  height: 36px !important;
+  font-size: 14px !important;
+  margin: 0 2px !important;
+}
+
+.fc-toolbar-chunk:last-child .fc-button-group .fc-button.fc-button-active {
+  transform: scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 今天按钮样式 */
+.fc-toolbar-chunk:first-child .fc-button {
+  border-radius: 20px !important;
+  min-width: 80px !important;
+  height: 36px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
 }
 
 .first-weekday-indicator {

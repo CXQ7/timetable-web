@@ -37,21 +37,10 @@ const routes = [
           import('@/views/course-scheduling-list/CourseSchedulingList.vue')
       },
       {
-        path: '/classroom',
-        component: () => import('@/views/classroom/Classroom.vue')
+        path: '/basic-data-management',
+        component: () => import('@/views/basic-data-management/BasicDataManagement.vue')
       },
-      {
-        path: '/course',
-        component: () => import('@/views/course/Course.vue')
-      },
-      {
-        path: '/teacher',
-        component: () => import('@/views/teacher/Teacher.vue')
-      },
-      {
-        path: '/report',
-        component: () => import('@/views/report/Report.vue')
-      },
+
       {
         path: '/course-reminder',
         component: () => import('@/views/course-reminder/CourseReminder.vue')

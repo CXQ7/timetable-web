@@ -11,7 +11,7 @@
         >
           <span>{{ item.name }}</span>
           <el-badge
-            v-if="item.code === '07' && reminderDot"
+            v-if="item.code === '05' && reminderDot"
             is-dot
             class="reminder-badge"
           >
@@ -46,31 +46,17 @@ export default {
         },
         {
           code: '03',
-          path: '/classroom',
-          name: '教室管理'
+          path: '/basic-data-management',
+          name: '基础数据管理'
         },
-        {
-          code: '04',
-          path: '/course',
-          name: '课程管理'
-        },
+
         {
           code: '05',
-          path: '/teacher',
-          name: '老师管理'
-        },
-        {
-          code: '06',
-          path: '/report',
-          name: '课程统计'
-        },
-        {
-          code: '07',
           path: '/course-reminder',
           name: '课程提醒'
         },
         {
-          code: '08',
+          code: '06',
           path: '/settings',
           name: '用户设置'
         }

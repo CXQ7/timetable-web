@@ -1,12 +1,8 @@
 <template>
-  <el-dialog title="新增" width="450px"
-             :close-on-click-modal="false"
-             :close-on-press-escape="false"
-             :visible.sync="dialogVisible"
-             :before-close="handleClose" >
-    <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="tams-form-container">
-      <el-form-item label="名称" prop="name">
-        <el-input v-model="form.name" class="tams-form-item"></el-input>
+  <el-dialog title="新增教师" :visible.sync="visible" width="50%" @close="close">
+    <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="form-container">
+      <el-form-item label="教师姓名" prop="name">
+        <el-input v-model="form.name" class="form-item"></el-input>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
