@@ -988,3 +988,244 @@ body {
   border: 1px solid #f56565;
   color: #f56565;
 }
+
+/* 批量删除功能样式 */
+.batch-delete-dialog .el-dialog__body {
+  padding: 20px 30px;
+}
+
+.batch-delete-dialog .el-form-item {
+  margin-bottom: 20px;
+}
+
+.batch-delete-dialog .el-form-item__label {
+  font-weight: 600;
+  color: #606266;
+  font-size: 14px;
+}
+
+.batch-delete-dialog .el-form-item__content {
+  min-width: 300px;
+}
+
+.batch-delete-dialog .el-radio-group {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.batch-delete-dialog .el-radio {
+  margin-right: 0;
+  margin-bottom: 0;
+  min-width: 120px;
+}
+
+.batch-delete-dialog .el-alert {
+  margin-top: 15px;
+  margin-bottom: 0;
+}
+
+.batch-delete-dialog .el-button--danger {
+  background-color: #f56565;
+  border-color: #f56565;
+}
+
+.batch-delete-dialog .el-button--danger:hover {
+  background-color: #e53e3e;
+  border-color: #e53e3e;
+}
+
+.batch-delete-dialog .el-button--danger:disabled {
+  background-color: #c0c4cc;
+  border-color: #c0c4cc;
+  color: #ffffff;
+  cursor: not-allowed;
+}
+
+/* 批量删除按钮样式 */
+.el-button--danger.el-button--small {
+  padding: 9px 15px;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+.el-button--danger.el-button--small:hover {
+  background-color: #e53e3e;
+  border-color: #e53e3e;
+  color: #ffffff;
+}
+
+/* 预览信息样式 */
+.preview-info {
+  background-color: #f0f9ff;
+  border: 1px solid #409eff;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.preview-info .el-icon-info {
+  color: #409eff;
+  margin-right: 8px;
+}
+
+/* 对话框标题样式 */
+.batch-delete-dialog .el-dialog__header {
+  padding: 20px 30px 10px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.batch-delete-dialog .el-dialog__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.batch-delete-dialog .el-dialog__footer {
+  padding: 15px 30px 20px;
+  border-top: 1px solid #e4e7ed;
+  background-color: #f8f9fa;
+}
+
+/* 日期选择器样式优化 */
+.batch-delete-dialog .el-date-picker {
+  width: 100%;
+}
+
+/* 下拉选择器样式优化 */
+.batch-delete-dialog .el-select {
+  width: 100%;
+}
+
+/* 警告信息样式增强 */
+.batch-delete-dialog .el-alert--warning {
+  border-left: 4px solid #e6a23c;
+  background-color: #fdf6ec;
+}
+
+.batch-delete-dialog .el-alert--warning .el-alert__title {
+  color: #e6a23c;
+  font-weight: 600;
+}
+
+/* 信息提示样式增强 */
+.batch-delete-dialog .el-alert--info {
+  border-left: 4px solid #409eff;
+  background-color: #f0f9ff;
+}
+
+.batch-delete-dialog .el-alert--info .el-alert__title {
+  color: #409eff;
+  font-weight: 600;
+}
+
+/* 课表页面布局对齐 */
+.course-scheduling-container {
+  padding: 0 20px;
+}
+
+.course-scheduling-header {
+  margin-bottom: 20px;
+}
+
+.course-scheduling-content {
+  position: relative;
+}
+
+.course-scheduling-content .el-row {
+  margin-bottom: 16px;
+}
+
+.course-scheduling-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-right: 0;
+  margin-right: -1px; /* 微调对齐 */
+}
+
+.course-scheduling-buttons .el-button {
+  margin-right: 0;
+}
+
+.course-scheduling-buttons .el-dropdown {
+  margin-right: 0;
+}
+
+/* FullCalendar 容器样式 */
+.fc {
+  margin: 0;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fc-header-toolbar {
+  margin-bottom: 1em;
+  padding: 10px 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e4e7ed;
+  border-radius: 4px 4px 0 0;
+}
+
+.fc-daygrid-body,
+.fc-timegrid-body {
+  border-radius: 0 0 4px 4px;
+}
+
+/* 确保按钮区域与课表完美对齐 */
+.course-scheduling-content .el-col:last-child {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: 0;
+}
+
+/* 表单区域样式优化 */
+.course-scheduling-content .el-form {
+  margin-bottom: 0;
+}
+
+.course-scheduling-content .el-form-item {
+  margin-bottom: 0;
+  margin-right: 20px; /* 增加间距以适应更紧凑的布局 */
+}
+
+.course-scheduling-content .el-form-item:last-child {
+  margin-right: 0;
+}
+
+/* 筛选器标签样式 */
+.course-scheduling-content .el-form-item__label {
+  font-weight: 600;
+  color: #606266;
+  min-width: 50px;
+}
+
+/* 筛选器下拉框样式 */
+.course-scheduling-content .el-select {
+  width: 200px;
+}
+
+/* 响应式调整 */
+@media (max-width: 1200px) {
+  .course-scheduling-buttons {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .course-scheduling-buttons .el-button {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+  
+  .course-scheduling-content .el-form-item {
+    margin-right: 12px;
+  }
+  
+  .course-scheduling-content .el-select {
+    width: 160px;
+  }
+}

@@ -1,8 +1,8 @@
 <template>
-  <div id="course-scheduling">
-    <div>
-      <el-row type="flex" justify="space-between" align="middle">
-        <el-col :span="18">
+  <div class="course-scheduling-container">
+    <div class="course-scheduling-content">
+      <el-row>
+        <el-col :span="16">
           <el-form inline>
             <el-form-item label="教室：">
               <el-select
@@ -36,17 +36,12 @@
                 <el-option
                   v-for="item in courseData"
                   :key="item.id"
+                  :label="item.name"
                   :value="item.id"
                 >
-                  <span>{{ item.name }}</span>
-                  <span style="float: right; color: #8492a6; font-size: 11px">
-                    {{
-                      item.courseType === 1 || item.courseType === "1"
-                        ? "必修"
-                        : item.courseType === 2 || item.courseType === "2"
-                        ? "选修"
-                        : "必修"
-                    }}
+                  <span style="float: left">{{ item.name }}</span>
+                  <span style="float: right; color: #8492a6; font-size: 13px">
+                    {{ item.duration }}分钟
                   </span>
                 </el-option>
               </el-select>
@@ -72,9 +67,9 @@
             </el-form-item>
           </el-form>
         </el-col>
-        <el-col :span="6">
-          <div style="text-align: right; white-space: nowrap">
-            <el-dropdown style="margin-right: 8px; display: inline-block">
+        <el-col :span="8">
+          <div class="course-scheduling-buttons">
+            <el-dropdown>
               <el-button type="primary" size="small">
                 主题风格<i class="el-icon-arrow-down el-icon--right"></i>
               </el-button>
@@ -101,14 +96,18 @@
             <el-button
               type="primary"
               size="small"
-              style="margin-right: 8px"
               @click="saveBatchCourseSchedulingVisible = true"
               >新增课程</el-button
             >
             <el-button
+              type="danger"
+              size="small"
+              @click="batchDeleteCourseSchedulingVisible = true"
+              >批量删除</el-button
+            >
+            <el-button
               type="primary"
               size="small"
-              style="margin-right: 8px"
               @click="importCourseSchedulingVisible = true"
               >导入</el-button
             >
@@ -121,10 +120,12 @@
           </div>
         </el-col>
       </el-row>
+      <div style="margin-bottom: 16px;">
       <FullCalendar
         ref="fullCalendar"
         :options="calendarOptions"
       ></FullCalendar>
+      </div>
     </div>
     <SaveCourseScheduling
       :visible="saveCourseSchedulingVisible"
@@ -158,6 +159,12 @@
       @on-success="importSuccess"
     >
     </ImportCourseScheduling>
+    <BatchDeleteCourseScheduling
+      :visible="batchDeleteCourseSchedulingVisible"
+      @on-close="batchDeleteCourseSchedulingVisible = false"
+      @on-success="batchDeleteSuccess"
+    >
+    </BatchDeleteCourseScheduling>
   </div>
 </template>
 <script>
@@ -173,6 +180,7 @@ import ViewCourseScheduling from '@/views/course-scheduling/ViewCourseScheduling
 import BatchSaveCourseScheduling from '@/views/course-scheduling/BatchSaveCourseScheduling'
 import ExportCourseScheduling from '@/views/course-scheduling/ExportCourseScheduling'
 import ImportCourseScheduling from '@/views/course-scheduling/ImportCourseScheduling'
+import BatchDeleteCourseScheduling from '@/views/course-scheduling/BatchDeleteCourseScheduling'
 
 export default {
   name: 'CourseScheduling',
@@ -182,7 +190,8 @@ export default {
     BatchSaveCourseScheduling,
     ViewCourseScheduling,
     SaveCourseScheduling,
-    FullCalendar
+    FullCalendar,
+    BatchDeleteCourseScheduling
   },
   data () {
     return {
@@ -195,6 +204,7 @@ export default {
       saveCourseSchedulingVisible: false,
       viewCourseSchedulingVisible: false,
       saveBatchCourseSchedulingVisible: false,
+      batchDeleteCourseSchedulingVisible: false,
       exportCourseSchedulingVisible: false,
       importCourseSchedulingVisible: false,
       id: 0,
@@ -686,6 +696,10 @@ export default {
         arg.el.style.position = 'relative'
         arg.el.appendChild(marker)
       }
+    },
+    batchDeleteSuccess () {
+      this.search()
+      this.batchDeleteCourseSchedulingVisible = false
     }
   },
   mounted () {
