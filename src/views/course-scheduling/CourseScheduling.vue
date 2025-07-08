@@ -237,6 +237,25 @@ export default {
           center: 'prev,title,next',
           end: 'timeGridDay,timeGridWeek,dayGridMonth'
         },
+        titleFormat: function (date) {
+          const start = moment(date.start)
+          const end = moment(date.end).subtract(1, 'day')
+          // 判断视图类型
+          if (date.view && date.view.type) {
+            if (date.view.type === 'dayGridMonth' || date.view.type === 'dayGridMonth') {
+              // 月视图
+              return `${start.year()}年 ${start.month() + 1}月`
+            } else if (date.view.type === 'timeGridDay' || date.view.type === 'dayGridDay') {
+              // 日视图
+              return `${start.year()}年 ${start.month() + 1}月${start.date()}日`
+            } else if (date.view.type === 'timeGridWeek' || date.view.type === 'dayGridWeek' || date.view.type === 'listWeek') {
+              // 周视图
+              return `${start.year()}年 ${start.month() + 1}月${start.date()}日 - ${end.month() + 1}月${end.date()}日`
+            }
+          }
+          // 默认周视图
+          return `${start.year()}年 ${start.month() + 1}月${start.date()}日 - ${end.month() + 1}月${end.date()}日`
+        },
         buttonText: {
           today: '今天',
           month: '月',

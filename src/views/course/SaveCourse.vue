@@ -1,21 +1,17 @@
 <template>
-  <el-dialog title="新增课程" :visible.sync="visible" width="50%" @close="close">
-    <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="form-container">
+  <el-dialog title="新增课程" :visible="visible" width="50%" :close-on-click-modal="false">
+    <el-form ref="form" :model="form" :rules="rules" label-width="120px" class="form-container">
       <el-form-item label="课程名称" prop="name">
-        <el-input v-model="form.name" class="form-item"></el-input>
+        <el-input v-model="form.name"></el-input>
       </el-form-item>
       <el-form-item label="时长（分钟）" prop="duration">
-        <el-input-number v-model="form.duration" :step="$consts.COURSE_DURATION_STEP_MINUTE" :min="0" :max="360" class="form-item"></el-input-number>
+        <el-input-number v-model="form.duration" :min="1"></el-input-number>
       </el-form-item>
       <el-form-item label="课程类型" prop="courseType">
-        <el-radio-group v-model="form.courseType" class="form-item">
+        <el-radio-group v-model="form.courseType">
           <el-radio :label="1">必修</el-radio>
           <el-radio :label="2">选修</el-radio>
         </el-radio-group>
-      </el-form-item>
-      <el-form-item label="背景颜色" prop="backgroundColor">
-        <el-color-picker v-model="form.backgroundColor" :predefine="predefineColors">
-        </el-color-picker>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
@@ -37,16 +33,24 @@ export default {
   },
   data () {
     return {
-      dialogVisible: false,
       form: {
+        name: '',
+        duration: 90,
         courseType: 1
       },
-      predefineColors: [],
+
       rules: {
         name: [
           {
             required: true,
             message: '名称不能为空',
+            trigger: 'blur'
+          }
+        ],
+        duration: [
+          {
+            required: true,
+            message: '时长不能为空',
             trigger: 'blur'
           }
         ],
@@ -62,37 +66,50 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['SaveCourse', 'GetEffectiveList']),
-    init () {
-      this.GetEffectiveList().then((res) => {
-        this.predefineColors = res
-      }).catch(() => {
-      })
-    },
+    ...mapActions(['SaveCourse']),
     handleClose (done) {
       this.$refs.form.resetFields()
-      this.form.courseType = 1 // 重置后恢复默认值
+      this.form = {
+        name: '',
+        duration: 90,
+        courseType: 1
+      }
       this.$emit('on-close')
       done()
     },
     close () {
       this.$refs.form.resetFields()
-      this.form.courseType = 1 // 重置后恢复默认值
+      this.form = {
+        name: '',
+        duration: 90,
+        courseType: 1
+      }
       this.$emit('on-close')
-      this.dialogVisible = false
     },
     submit () {
       this.$refs.form.validate(valid => {
         if (valid) {
-          console.log('提交的课程数据：', this.form)
+          // 输出详细的请求信息
+          console.log('=== 新增课程请求信息 ===')
+          console.log('请求URL: POST /course')
+          console.log('请求数据:', JSON.stringify(this.form, null, 2))
+          console.log('请求头: Content-Type: application/json')
+          console.log('基础URL:', process.env.VUE_APP_BASE_URL)
+          console.log('完整请求URL:', process.env.VUE_APP_BASE_URL + '/course')
+          console.log('========================')
           this.submitBtnLoading = true
           this.SaveCourse(this.form).then((res) => {
+            console.log('=== 新增课程响应信息 ===')
+            console.log('响应数据:', res)
+            console.log('========================')
             this.submitBtnLoading = false
             this.$refs.form.resetFields()
             this.form.courseType = 1 // 重置后恢复默认值
             this.$emit('on-success', res)
-            this.dialogVisible = false
-          }).catch(() => {
+          }).catch((error) => {
+            console.log('=== 新增课程错误信息 ===')
+            console.log('错误:', error)
+            console.log('========================')
             this.submitBtnLoading = false
           })
         }
@@ -101,10 +118,7 @@ export default {
   },
   watch: {
     visible (val) {
-      if (val) {
-        this.init()
-        this.dialogVisible = val
-      }
+      // 对话框打开时的处理
     }
   }
 }

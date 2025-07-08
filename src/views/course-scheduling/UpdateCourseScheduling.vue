@@ -9,57 +9,57 @@
         <el-form-item label="日期" prop="date">
           <el-date-picker
             v-model="form.date"
-            type="date"
+                          type="date"
             placeholder="选择日期"
             format="yyyy-MM-dd"
-            value-format="yyyy-MM-dd"
+                          value-format="yyyy-MM-dd"
             class="form-item"></el-date-picker>
         </el-form-item>
         <br/>
-        <el-form-item label="教室" prop="classroomId">
+              <el-form-item label="教室" prop="classroomId">
           <el-select v-model="form.classroomId" class="form-item" @change="classroomChange" placeholder="请选择教室">
             <el-option
               v-for="item in classrooms"
               :key="item.id"
               :label="item.name"
               :value="item.id">
-            </el-option>
-            <el-option key="add-new-classroom" :value="'add-new-classroom'" style="color: #409EFF;">
-              <i class="el-icon-plus"></i> 新增教室
-            </el-option>
-          </el-select>
-        </el-form-item>
+          </el-option>
+          <el-option key="add-new-classroom" :value="'add-new-classroom'" style="color: #409EFF;">
+            <i class="el-icon-plus"></i> 新增教室
+          </el-option>
+        </el-select>
+      </el-form-item>
         <br/>
-        <el-form-item label="课程" prop="courseId">
+              <el-form-item label="课程" prop="courseId">
           <el-select v-model="currentCourse" value-key="id" class="form-item" @change="courseChange" placeholder="请选择课程">
             <el-option
               v-for="item in courses"
               :key="item.id"
               :label="item.name"
               :value="item">
-              <span>{{ item.name }}</span>
-              <span style="float: right; color: #8492a6; font-size: 12px;">
-                {{ (item.courseType === 1 || item.courseType === '1') ? '必修' : (item.courseType === 2 || item.courseType === '2') ? '选修' : '必修' }}
-              </span>
-            </el-option>
-            <el-option key="add-new-course" :value="'add-new-course'" style="color: #409EFF;">
-              <i class="el-icon-plus"></i> 新增课程
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="老师" prop="teacherId">
+            <span>{{ item.name }}</span>
+            <span style="float: right; color: #8492a6; font-size: 12px;">
+              {{ (item.courseType === 1 || item.courseType === '1') ? '必修' : (item.courseType === 2 || item.courseType === '2') ? '选修' : '必修' }}
+            </span>
+          </el-option>
+          <el-option key="add-new-course" :value="'add-new-course'" style="color: #409EFF;">
+            <i class="el-icon-plus"></i> 新增课程
+          </el-option>
+        </el-select>
+      </el-form-item>
+              <el-form-item label="老师" prop="teacherId">
           <el-select v-model="form.teacherId" class="form-item" @change="teacherChange" placeholder="请选择老师">
             <el-option
               v-for="item in teachers"
               :key="item.id"
               :label="item.name"
               :value="item.id">
-            </el-option>
-            <el-option key="add-new-teacher" :value="'add-new-teacher'" style="color: #409EFF;">
-              <i class="el-icon-plus"></i> 新增老师
-            </el-option>
-          </el-select>
-        </el-form-item>
+          </el-option>
+          <el-option key="add-new-teacher" :value="'add-new-teacher'" style="color: #409EFF;">
+            <i class="el-icon-plus"></i> 新增老师
+          </el-option>
+        </el-select>
+      </el-form-item>
         <el-form-item label="时间" prop="attendTime">
           <el-time-select :clearable="false"
                           style="width: 210px;"

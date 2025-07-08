@@ -37,17 +37,17 @@ export default {
         {
           code: '01',
           path: '/course-scheduling',
-          name: '排课日历'
+          name: '课表展示'
         },
         {
           code: '02',
           path: '/course-scheduling-list',
-          name: '排课列表'
+          name: '选课列表'
         },
         {
           code: '03',
           path: '/basic-data-management',
-          name: '基础数据管理'
+          name: '数据管理'
         },
 
         {

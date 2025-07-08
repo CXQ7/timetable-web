@@ -1,7 +1,7 @@
 <template>
   <el-card shadow="never">
     <div slot="header" class="clearfix">
-      <span>排课列表</span>
+      <span>选课列表</span>
     </div>
     <div id="course-scheduling-list">
       <el-form inline>
@@ -32,13 +32,13 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="——课程">
+        <el-form-item label="课程">
           <el-select ref="courseSelect" clearable multiple size="mini" class="form-item" v-model="params.courseIdList">
             <el-option v-for="item in courseData" :key="item.id" :label="item.name" :value="item.id">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="——老师">
+        <el-form-item label="老师">
           <el-select ref="teacherSelect" clearable multiple size="mini" class="form-item" v-model="params.teacherIdList">
             <el-option v-for="item in teacherData" :key="item.id" :label="item.name" :value="item.id">
             </el-option>
@@ -143,7 +143,7 @@ export default {
       this.search()
     },
     remove () {
-      this.$confirm('确定要删除选中的课程排课吗？', '提示', {
+      this.$confirm('确定要删除该选课吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'

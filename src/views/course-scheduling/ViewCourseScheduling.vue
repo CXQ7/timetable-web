@@ -23,8 +23,6 @@
           <el-input v-model="form.finishTime" class="tams-form-item" readonly></el-input>
         </el-form-item>
       </el-form>
-
-      <!-- 备注字段 -->
       <div style="margin-top: 20px;">
         <el-divider>备注</el-divider>
         <el-form-item label="备注" style="width: 100%;">

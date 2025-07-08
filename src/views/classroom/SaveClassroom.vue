@@ -1,6 +1,6 @@
 <template>
   <el-dialog title="新增教室" :visible.sync="visible" width="50%" @close="close">
-    <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="form-container">
+    <el-form ref="form" :model="form" :rules="rules" label-width="120px" class="form-container">
       <el-form-item label="教室名称" prop="name">
         <el-input v-model="form.name" class="form-item"></el-input>
       </el-form-item>
