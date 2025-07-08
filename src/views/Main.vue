@@ -3,7 +3,7 @@
     <el-aside width="100px" class="main-aside">
       <el-menu router @select="handleSelect" class="main-menu">
         <el-menu-item
-          v-for="item in navData"
+          v-for="item in regularNavData"
           :key="item.code"
           :index="item.code"
           :route="item.path"
@@ -17,6 +17,9 @@
           >
           </el-badge>
         </el-menu-item>
+        <div class="logout-menu-item main-menu-item" @click="handleLogout">
+          <span>注销</span>
+        </div>
       </el-menu>
     </el-aside>
     <el-main class="main-content">
@@ -59,6 +62,12 @@ export default {
           code: '06',
           path: '/settings',
           name: '用户设置'
+        },
+        {
+          code: '07',
+          path: '/logout',
+          name: '注销',
+          isLogout: true
         }
       ],
       pollInterval: null, // 轮询定时器
@@ -69,12 +78,44 @@ export default {
     ...mapState({
       reminderDot: (state) => state.courseReminder.reminderDot,
       userInfo: (state) => state.authentication.userInfo
-    })
+    }),
+    regularNavData () {
+      return this.navData.filter((item) => !item.isLogout)
+    }
   },
   methods: {
     ...mapActions(['GetReminderSettings', 'GetUpcomingReminders']),
 
     handleSelect (key, keyPath) {},
+
+    handleLogout () {
+      this.$confirm('确定要注销登录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          // 清除用户信息和token
+          this.$store.commit('SET_USER_INFO', null)
+          this.$store.commit('SET_TOKEN', null)
+
+          // 清除本地存储
+          localStorage.removeItem('userInfo')
+          localStorage.removeItem('token')
+
+          // 停止轮询
+          if (this.pollInterval) {
+            clearInterval(this.pollInterval)
+          }
+
+          // 跳转到登录页面
+          this.$router.replace('/login')
+          this.$message.success('注销成功')
+        })
+        .catch(() => {
+          // 用户取消注销
+        })
+    },
 
     startReminderPolling () {
       // 每分钟检查一次
@@ -85,15 +126,20 @@ export default {
 
     checkReminderDot () {
       // 先判断是否开启了站内提醒
-      this.GetReminderSettings({ username: this.userInfo.username }).then((settings) => {
-        if (settings.inSite) {
-          this.GetUpcomingReminders({ username: this.userInfo.username, limit: 1 }).then((reminders) => {
-            if (reminders && reminders.length > 0) {
-              this.$store.commit('SET_REMINDER_DOT', true)
-            }
-          })
+      this.GetReminderSettings({ username: this.userInfo.username }).then(
+        (settings) => {
+          if (settings.inSite) {
+            this.GetUpcomingReminders({
+              username: this.userInfo.username,
+              limit: 1
+            }).then((reminders) => {
+              if (reminders && reminders.length > 0) {
+                this.$store.commit('SET_REMINDER_DOT', true)
+              }
+            })
+          }
         }
-      })
+      )
     },
 
     clearReminderDotIfOnReminderPage () {
@@ -135,13 +181,20 @@ export default {
 }
 
 .main-aside::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7);
+  background: linear-gradient(
+    90deg,
+    #ff6b6b,
+    #4ecdc4,
+    #45b7d1,
+    #96ceb4,
+    #ffeaa7
+  );
   opacity: 0.8;
 }
 
@@ -164,13 +217,18 @@ export default {
 }
 
 .main-menu-item::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -186,9 +244,21 @@ export default {
 }
 
 .main-menu-item.is-active {
-  background: #409EFF;
+  background: #409eff;
   color: white;
   box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+}
+
+.logout-menu-item {
+  background: #f56c6c !important;
+  color: white !important;
+  margin-top: 20px;
+}
+
+.logout-menu-item:hover {
+  background: #e6484a !important;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(245, 108, 108, 0.4) !important;
 }
 
 .reminder-badge {
@@ -205,7 +275,7 @@ export default {
 }
 
 .main-content::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -232,6 +302,14 @@ export default {
   background: #666666;
 }
 
+.theme-dark .logout-menu-item {
+  background: #c0392b !important;
+}
+
+.theme-dark .logout-menu-item:hover {
+  background: #a93226 !important;
+}
+
 .theme-macaron .main-aside {
   background: #8b4789;
 }
@@ -242,6 +320,14 @@ export default {
 
 .theme-macaron .main-menu-item.is-active {
   background: #ffb6b9;
+}
+
+.theme-macaron .logout-menu-item {
+  background: #e74c3c !important;
+}
+
+.theme-macaron .logout-menu-item:hover {
+  background: #c0392b !important;
 }
 
 .theme-fresh-green .main-aside {
@@ -256,6 +342,14 @@ export default {
   background: #28c76f;
 }
 
+.theme-fresh-green .logout-menu-item {
+  background: #dc3545 !important;
+}
+
+.theme-fresh-green .logout-menu-item:hover {
+  background: #c82333 !important;
+}
+
 .theme-retro-yellow .main-aside {
   background: #8b4513;
 }
@@ -266,6 +360,14 @@ export default {
 
 .theme-retro-yellow .main-menu-item.is-active {
   background: #c29f42;
+}
+
+.theme-retro-yellow .logout-menu-item {
+  background: #b8651f !important;
+}
+
+.theme-retro-yellow .logout-menu-item:hover {
+  background: #9e5315 !important;
 }
 
 /* 响应式设计 */
