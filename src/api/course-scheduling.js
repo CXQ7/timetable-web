@@ -73,6 +73,7 @@ export const removeCourseSchedulingById = (id, username) => {
 }
 
 export const removeCourseSchedulingByIdList = (data) => {
+  console.log('批量删除课程API调用，参数:', data)
   return axios({
     url: 'course-scheduling/batch',
     method: 'delete',

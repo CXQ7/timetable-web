@@ -4,7 +4,7 @@
       <span>选课列表</span>
     </div>
     <div id="course-scheduling-list">
-      <el-form inline>
+      <el-form inline label-width="80px">
         <el-form-item label="日期">
           <el-date-picker v-model="params.dates"
                           size="mini"
@@ -14,7 +14,8 @@
                           range-separator="至"
                           start-placeholder="开始日期"
                           end-placeholder="结束日期"
-                          style="width: 240px;">
+                          style="min-width: 300px; width: 100%; max-width: 340px;"
+                          @change="handleDateChange">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="上课时间">
@@ -162,6 +163,14 @@ export default {
     },
     handleSelectionChange (selection) {
       this.idList = selection.map(item => item.id)
+    },
+    handleDateChange (value) {
+      console.log('日期选择器变化:', value)
+      if (value && value.length === 2) {
+        this.params.startDate = value[0]
+        this.params.endDate = value[1]
+        console.log('更新日期范围:', this.params.startDate, '至', this.params.endDate)
+      }
     }
   },
   mounted () {
@@ -176,5 +185,57 @@ export default {
 }
 #course-scheduling-list .form-item {
   width: 240px;
+}
+
+/* 日期选择器输入框高度和内容对齐 */
+#course-scheduling-list .el-date-editor .el-input__inner {
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 15px !important;
+  padding: 0 8px !important;
+  vertical-align: middle !important;
+}
+
+/* "至"分隔符垂直居中 */
+#course-scheduling-list .el-date-editor .el-range-separator {
+  background: none !important;
+  color: #333 !important;
+  font-size: 15px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  margin: 0 2px !important;
+  box-shadow: none !important;
+  padding: 0 2px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+}
+
+#course-scheduling-list .el-date-editor {
+  min-width: 220px !important;
+  width: 100% !important;
+  max-width: 340px !important;
+}
+
+#course-scheduling-list .el-date-editor .el-range-input {
+  width: 48% !important;
+  font-size: 15px !important;
+  padding: 0 8px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  vertical-align: middle !important;
+}
+
+/* 确保容器有足够空间 */
+#course-scheduling-list {
+  padding: 20px;
+  min-height: 200px;
+}
+
+/* 日期选择器容器样式 */
+#course-scheduling-list .el-form-item:first-child {
+  position: relative;
+  z-index: 1000;
 }
 </style>

@@ -5,10 +5,6 @@
     </div>
     <el-row class="search-container">
       <el-col :span="18">
-        <el-radio-group v-model="params.enableState" size="small" @change="search">
-          <el-radio-button :label="1">启用</el-radio-button>
-          <el-radio-button :label="2">停用</el-radio-button>
-        </el-radio-group>
       </el-col>
       <el-col :span="6">
         <el-button type="primary" size="small" class="operate-item" @click="saveCourseVisible=true">新增</el-button>
@@ -17,10 +13,10 @@
 
     <div v-loading="loading">
       <el-table stripe border :data="data.records">
-        <el-table-column type="index" label="序号" width="50"></el-table-column>
+        <el-table-column type="index" label="序号" width="150"></el-table-column>
         <el-table-column prop="name" label="名称" width="200"></el-table-column>
-        <el-table-column prop="duration" label="时长" width="100"></el-table-column>
-        <el-table-column label="课程类型" width="100">
+        <el-table-column prop="duration" label="时长" width="150"></el-table-column>
+        <el-table-column label="课程类型" width="150">
           <template slot-scope="scope">
             <el-tag :type="(scope.row.courseType === 1 || scope.row.courseType === '1') ? 'success' : 'info'" size="mini">
               {{ (scope.row.courseType === 1 || scope.row.courseType === '1') ? '必修' : (scope.row.courseType === 2 || scope.row.courseType === '2') ? '选修' : '必修' }}

@@ -5,10 +5,6 @@
     </div>
     <el-row class="search-container">
       <el-col :span="18">
-        <el-radio-group v-model="params.enableState" size="small" @change="search">
-          <el-radio-button :label="1">启用</el-radio-button>
-          <el-radio-button :label="2">停用</el-radio-button>
-        </el-radio-group>
       </el-col>
       <el-col :span="6">
         <el-button type="primary" size="small" class="operate-item" @click="saveClassroomVisible=true">新增</el-button>
@@ -17,7 +13,7 @@
 
     <div v-loading="loading">
       <el-table stripe border :data="data.records">
-        <el-table-column type="index" label="序号" width="50"></el-table-column>
+        <el-table-column type="index" label="序号" width="150"></el-table-column>
         <el-table-column prop="name" label="名称"></el-table-column>
         <el-table-column
             fixed="right"
