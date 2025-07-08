@@ -76,7 +76,7 @@
         <el-form-item label="课程时长">
           <el-input-number style="width: 130px"
                            v-model="courseDuration"
-                           :step="$consts.COURSE_DURATION_STEP_MINUTE"
+                           :step="15"
                            :min="0"
                            :max="360"
                            :disabled="!(form.courseId&&form.courseId>0)"
@@ -172,7 +172,7 @@ export default {
       },
       timePickerOptions: {
         start: '07:00',
-        step: '00:' + this.$consts.COURSE_DURATION_STEP_MINUTE,
+        step: '00:15',
         end: '20:00'
       },
       rules: {

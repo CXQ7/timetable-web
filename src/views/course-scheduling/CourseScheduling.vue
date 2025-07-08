@@ -211,7 +211,7 @@ export default {
         // 时间轴间距
         slotMinTime: '07:00',
         slotMaxTime: '21:00',
-        slotDuration: '00:' + this.$consts.COURSE_DURATION_STEP_MINUTE + ':00',
+        slotDuration: '00:15:00',
         // 是否显示第几周
         // weekNumbers: true,
         // weekText: '周',
@@ -471,8 +471,14 @@ export default {
       this.saveBatchCourseSchedulingVisible = false
     },
     updateSuccess () {
+      // 立即刷新课表数据
       this.search()
+      // 关闭弹窗
       this.viewCourseSchedulingVisible = false
+      // 确保数据完全同步，延迟再次刷新
+      setTimeout(() => {
+        this.search()
+      }, 300)
     },
     importSuccess () {
       this.search()

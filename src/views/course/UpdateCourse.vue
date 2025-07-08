@@ -5,7 +5,7 @@
         <el-input v-model="form.name" class="form-item"></el-input>
       </el-form-item>
       <el-form-item label="时长（分钟）" prop="duration">
-        <el-input-number v-model="form.duration" :step="$consts.COURSE_DURATION_STEP_MINUTE" :min="0" :max="360" class="form-item"></el-input-number>
+        <el-input-number v-model="form.duration" :step="15" :min="0" :max="360" class="form-item"></el-input-number>
       </el-form-item>
       <el-form-item label="课程类型" prop="courseType">
         <el-radio-group v-model="form.courseType" class="form-item">

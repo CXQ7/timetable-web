@@ -914,3 +914,77 @@ body {
   background-color: #F56C6C !important;
   box-shadow: 0 0 0 2px white !important;
 }
+
+/* 删除确认对话框样式 */
+.el-message-box {
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.el-message-box__header {
+  padding: 20px 20px 10px;
+}
+
+.el-message-box__content {
+  padding: 10px 20px;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.el-message-box__btns {
+  padding: 10px 20px 20px;
+}
+
+.el-message-box__btns .el-button {
+  margin-left: 10px;
+}
+
+.el-message-box__btns .el-button:first-child {
+  margin-left: 0;
+}
+
+/* 危险按钮样式 */
+.el-button--danger {
+  background-color: #f56565;
+  border-color: #f56565;
+  color: #ffffff;
+}
+
+.el-button--danger:hover {
+  background-color: #e53e3e;
+  border-color: #e53e3e;
+  color: #ffffff;
+}
+
+.el-button--danger:focus {
+  background-color: #e53e3e;
+  border-color: #e53e3e;
+  color: #ffffff;
+  outline: 2px solid #fc8181;
+  outline-offset: 2px;
+}
+
+/* 修复 el-popover 的可访问性问题 */
+.el-popover[aria-hidden="true"] {
+  display: none !important;
+}
+
+/* 确保焦点可见性 */
+.el-button:focus {
+  outline: 2px solid #409eff;
+  outline-offset: 2px;
+}
+
+/* 删除成功提示样式 */
+.el-message--success {
+  background-color: #f0f9ff;
+  border: 1px solid #67c23a;
+  color: #67c23a;
+}
+
+.el-message--error {
+  background-color: #fef2f2;
+  border: 1px solid #f56565;
+  color: #f56565;
+}

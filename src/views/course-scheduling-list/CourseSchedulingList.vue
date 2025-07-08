@@ -85,7 +85,7 @@ export default {
       },
       timePickerOptions: {
         start: '07:00',
-        step: '00:' + this.$consts.COURSE_DURATION_STEP_MINUTE,
+        step: '00:15',
         end: '20:00'
       }
     }

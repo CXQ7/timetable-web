@@ -72,7 +72,7 @@
         <el-form-item>
           <el-input-number v-model="courseDuration"
                            style="width: 150px;"
-                           :step="$consts.COURSE_DURATION_STEP_MINUTE"
+                           :step="15"
                            :min="0"
                            :max="360"
                            @change="calcFinishTime"></el-input-number>
@@ -152,7 +152,7 @@ export default {
       },
       pickerOptions: {
         start: '07:00',
-        step: '00:' + this.$consts.COURSE_DURATION_STEP_MINUTE,
+        step: '00:15',
         end: '20:00'
       },
       rules: {

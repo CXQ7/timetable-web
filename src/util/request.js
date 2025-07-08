@@ -4,7 +4,7 @@ import consts from '@/util/consts'
 
 const msgSet = new Set()
 const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_URL,
+  baseURL: process.env.VUE_APP_BASE_URL || 'http://localhost:12011',
   timeout: 30000
 })
 
