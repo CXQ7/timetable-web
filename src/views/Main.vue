@@ -61,7 +61,7 @@ export default {
         {
           code: '06',
           path: '/settings',
-          name: '用户设置'
+          name: '系统设置'
         },
         {
           code: '07',

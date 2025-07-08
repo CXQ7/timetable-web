@@ -18,20 +18,25 @@
               :label-width="isMobile ? 'auto' : '120px'"
             >
               <el-form-item label="头像">
-                <el-upload
-                  class="avatar-uploader"
-                  action=""
-                  :show-file-list="false"
-                  :auto-upload="false"
-                  :on-change="handleAvatarChange"
-                >
-                  <img
-                    v-if="userForm.avatar_url"
-                    :src="userForm.avatar_url"
-                    class="avatar"
-                  />
-                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                </el-upload>
+                <div class="avatar-upload-container">
+                  <el-upload
+                    class="avatar-uploader"
+                    action=""
+                    :show-file-list="false"
+                    :auto-upload="false"
+                    :on-change="handleAvatarChange"
+                  >
+                    <img :src="currentAvatarUrl" class="avatar" alt="用户头像" />
+                    <div class="avatar-upload-overlay">
+                      <i class="el-icon-camera"></i>
+                      <div>点击上传</div>
+                    </div>
+                  </el-upload>
+                  <div class="avatar-upload-tips">
+                    <p v-if="avatarPreview" class="preview-tip">预览模式，保存后生效</p>
+                    <p class="format-tip">支持 JPG、PNG 格式，文件大小不超过 2MB</p>
+                  </div>
+                </div>
               </el-form-item>
 
               <el-form-item label="用户名">
@@ -291,7 +296,8 @@ export default {
       },
       classTimeDialogVisible: false,
       classTimes: [],
-      windowWidth: window.innerWidth
+      windowWidth: window.innerWidth,
+      avatarPreview: null // 用于存储头像预览的base64数据
     }
   },
   computed: {
@@ -309,29 +315,158 @@ export default {
       set (value) {
         this.classTimes = value
       }
+    },
+    // 当前显示的头像URL，优先显示预览图片，其次是用户头像，最后是默认头像
+    currentAvatarUrl () {
+      console.log('=== currentAvatarUrl 计算属性执行 ===')
+
+      // 如果有预览图片，优先显示预览
+      if (this.avatarPreview) {
+        console.log('使用预览头像显示')
+        return this.avatarPreview
+      }
+
+      // 如果用户有头像URL且不为空，显示用户头像
+      if (this.userForm.avatar_url && this.userForm.avatar_url.trim() !== '') {
+        const avatarUrl = this.userForm.avatar_url.trim()
+        console.log('userForm.avatar_url:', avatarUrl)
+        console.log('avatar_url数据类型:', typeof avatarUrl)
+        console.log('avatar_url数据长度:', avatarUrl.length)
+
+        // 检查是否是base64数据
+        if (avatarUrl.startsWith('data:image/')) {
+          // 是base64图片数据，直接使用
+          console.log('检测到base64头像数据，直接使用')
+          console.log('base64前缀:', avatarUrl.substring(0, 50) + '...')
+          return avatarUrl
+        }
+
+        // 检查是否是本地文件路径或文件名
+        const isLocalFile =
+          // Windows绝对路径：C:\Users\... 或 D:\...
+          /^[A-Za-z]:\\/.test(avatarUrl) ||
+          // Unix/Linux绝对路径：/home/... 或 /Users/...
+          avatarUrl.startsWith('/home/') ||
+          avatarUrl.startsWith('/Users/') ||
+          // Windows相对路径标识符
+          avatarUrl.includes('\\Documents\\') ||
+          avatarUrl.includes('\\Pictures\\') ||
+          // 仅文件名（没有协议、域名或以/开头的路径）
+          (!avatarUrl.includes('://') && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('http'))
+
+        if (isLocalFile) {
+          // 本地文件路径/文件名无法在浏览器中直接显示，使用默认头像
+          console.log('检测到本地文件，使用默认头像显示:', avatarUrl)
+          return require('@/assets/default-avatar.jpg')
+        }
+
+        // 如果是完整URL（包含协议）或网络路径，直接使用
+        console.log('使用网络URL显示头像:', avatarUrl)
+        return this.userForm.avatar_url
+      }
+
+      // 使用默认头像
+      console.log('没有有效的头像数据，使用默认头像')
+      console.log('userForm:', this.userForm)
+      return require('@/assets/default-avatar.jpg')
     }
   },
   methods: {
     // 保存用户设置
     saveUserSettings () {
       this.loading = true
-      this.$store
-        .dispatch('UpdateUserInfo', this.userForm)
-        .then(() => {
-          this.$message.success('用户设置保存成功')
-          // 安全地访问userInfo和token
-          const userInfo = this.$store.state.authentication.userInfo
-          const token = this.$store.state.authentication.token
 
-          if (userInfo) {
-            localStorage.setItem('userInfo', JSON.stringify(userInfo))
+      // 准备发送给后端的数据，转换字段名以匹配后端期望的格式
+      const updateData = {
+        username: this.userForm.username,
+        email: this.userForm.email,
+        phone: this.userForm.phone,
+        avatarUrl: this.userForm.avatar_url // 转换字段名：avatar_url -> avatarUrl
+      }
+
+      console.log('=== 保存用户设置开始 ===')
+      console.log('发送给后端的用户更新数据:', updateData)
+      console.log('头像数据详情:')
+      if (updateData.avatarUrl) {
+        console.log('  - 数据类型:', typeof updateData.avatarUrl)
+        console.log('  - 数据长度:', updateData.avatarUrl.length)
+        console.log('  - 是否为base64:', updateData.avatarUrl.startsWith('data:image/'))
+        if (updateData.avatarUrl.startsWith('data:image/')) {
+          console.log('  - base64前缀:', updateData.avatarUrl.substring(0, 50) + '...')
+        }
+      } else {
+        console.log('  - 没有头像数据')
+      }
+
+      this.$store
+        .dispatch('UpdateUserInfo', updateData)
+        .then((updatedUserInfo) => {
+          console.log('后端返回的更新结果:', updatedUserInfo)
+
+          // 检查头像数据是否正确保存
+          const sentAvatarUrl = updateData.avatarUrl
+          const returnedAvatarUrl = updatedUserInfo.avatar_url
+
+          if (sentAvatarUrl && sentAvatarUrl.startsWith('data:image/')) {
+            if (returnedAvatarUrl && returnedAvatarUrl.startsWith('data:image/')) {
+              this.$message.success('用户设置保存成功，头像已更新')
+              console.log('头像数据正确保存到后端')
+            } else {
+              this.$message({
+                message: '用户设置保存成功，但后端可能未正确保存头像数据',
+                type: 'warning',
+                duration: 5000
+              })
+              console.warn('发送的头像数据:', sentAvatarUrl.substring(0, 50) + '...')
+              console.warn('返回的头像数据:', returnedAvatarUrl)
+
+              // 如果后端没有正确返回头像数据，我们强制使用前端的数据更新localStorage
+              if (updatedUserInfo) {
+                updatedUserInfo.avatar_url = sentAvatarUrl
+                localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
+                console.log('已强制更新localStorage中的头像数据')
+              }
+            }
+          } else {
+            this.$message.success('用户设置保存成功')
           }
+
+          // 使用返回的用户信息更新本地存储
+          if (updatedUserInfo) {
+            localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
+            console.log('localStorage已更新，头像数据:', !!updatedUserInfo.avatar_url)
+          }
+
+          // 确保token也同步保存
+          const token = this.$store.state.authentication.token
           if (token) {
             localStorage.setItem('token', token)
           }
+
+          // 清除头像预览，使用保存后的头像URL
+          this.avatarPreview = null
+
+          // 立即验证保存结果
+          setTimeout(() => {
+            const verifyUserInfo = localStorage.getItem('userInfo')
+            if (verifyUserInfo) {
+              try {
+                const parsedInfo = JSON.parse(verifyUserInfo)
+                console.log('验证保存结果 - localStorage中的头像数据:', !!parsedInfo.avatar_url)
+                if (parsedInfo.avatar_url && parsedInfo.avatar_url.startsWith('data:image/')) {
+                  console.log('验证通过：localStorage中确实保存了base64头像数据')
+                }
+              } catch (e) {
+                console.error('验证localStorage数据时出错:', e)
+              }
+            }
+          }, 100)
+
+          console.log('=== 保存用户设置完成 ===')
         })
         .catch((err) => {
-          this.$message.error(err.message || '保存失败')
+          console.error('保存用户设置失败:', err)
+          this.$message.error(err.message || '保存用户设置失败，请重试')
         })
         .finally(() => {
           this.loading = false
@@ -463,15 +598,73 @@ export default {
       } finally {
         this.loading = false
       }
-    },
-
-    // 处理头像上传
+    }, // 处理头像上传
     handleAvatarChange (file) {
+      // 验证文件类型
+      const isImage = file.raw.type.startsWith('image/')
+      if (!isImage) {
+        this.$message.error('只能上传图片文件！')
+        return
+      }
+
+      // 验证文件大小（限制为2MB）
+      const isLt2M = file.raw.size / 1024 / 1024 < 2
+      if (!isLt2M) {
+        this.$message.error('图片大小不能超过 2MB!')
+        return
+      }
+
+      console.log('文件信息:', {
+        name: file.name,
+        size: file.raw.size,
+        type: file.raw.type,
+        lastModified: file.raw.lastModified
+      })
+
+      // 读取文件内容转换为base64
       const reader = new FileReader()
       reader.onload = (e) => {
-        this.userForm.avatar_url = e.target.result
+        const base64Data = e.target.result
+
+        // 设置avatar_url为base64数据（用于保存到数据库）
+        this.userForm.avatar_url = base64Data
+
+        // 同时设置预览图片
+        this.avatarPreview = base64Data
+
+        console.log('头像base64已生成')
+        console.log('base64数据长度:', base64Data.length)
+        console.log('base64前缀:', base64Data.substring(0, 50) + '...')
+
+        this.$message.success(`头像已选择 (${(base64Data.length / 1024).toFixed(1)}KB)`)
       }
+
+      reader.onerror = () => {
+        this.$message.error('文件读取失败，请重试')
+      }
+
+      // 读取文件为base64格式
       reader.readAsDataURL(file.raw)
+    },
+
+    // 上传头像到服务器的方法（示例）
+    async uploadAvatarToServer (file, filename) {
+      try {
+        const formData = new FormData()
+        formData.append('avatar', file)
+        formData.append('filename', filename)
+
+        // 这里应该调用实际的上传API
+        // const response = await this.$http.post('/api/upload/avatar', formData)
+        // return response.data.path
+
+        console.log('模拟上传头像到服务器:', filename)
+        return `/uploads/avatars/${filename}`
+      } catch (error) {
+        console.error('上传头像失败:', error)
+        this.$message.error('头像上传失败')
+        throw error
+      }
     },
 
     // 显示上课时间设置弹窗
@@ -538,14 +731,87 @@ export default {
         throw new Error('用户信息不完整')
       }
 
-      // 安全地复制用户信息
-      this.userForm = {
-        ...this.userForm,
-        avatar_url: userInfo.avatar_url || '',
-        username: userInfo.username || '',
-        email: userInfo.email || '',
-        phone: userInfo.phone || ''
+      console.log('=== Settings页面mounted开始 ===')
+      console.log('本地缓存的用户信息:', userInfo)
+      console.log('localStorage中的userInfo:', localStorage.getItem('userInfo'))
+
+      // 主动查询用户的最新信息，确保头像数据是最新的
+      try {
+        console.log('查询用户最新信息:', userInfo.username)
+        const latestUserInfo = await this.$store.dispatch('GetUserByUsername', userInfo.username)
+        console.log('从后端获取到的最新用户信息:', latestUserInfo)
+
+        // 检查头像数据
+        if (latestUserInfo.avatar_url) {
+          console.log('后端返回的头像数据:')
+          console.log('  - 数据类型:', typeof latestUserInfo.avatar_url)
+          console.log('  - 数据长度:', latestUserInfo.avatar_url.length)
+          console.log('  - 是否为base64:', latestUserInfo.avatar_url.startsWith('data:image/'))
+          if (latestUserInfo.avatar_url.startsWith('data:image/')) {
+            console.log('  - base64前缀:', latestUserInfo.avatar_url.substring(0, 50) + '...')
+          } else {
+            console.log('  - 完整数据:', latestUserInfo.avatar_url)
+          }
+        } else {
+          console.log('后端返回的用户信息中没有头像数据')
+        }
+
+        // 使用最新的用户信息
+        this.userForm = {
+          ...this.userForm,
+          avatar_url: latestUserInfo.avatar_url || '', // 使用最新的头像数据
+          username: latestUserInfo.username || '',
+          email: latestUserInfo.email || '',
+          phone: latestUserInfo.phone || ''
+        }
+
+        console.log('更新后的userForm.avatar_url:', this.userForm.avatar_url)
+
+        // 如果用户没有头像或头像为空，记录日志
+        if (!latestUserInfo.avatar_url || latestUserInfo.avatar_url.trim() === '') {
+          console.log('用户暂无头像，将显示默认头像')
+        } else if (latestUserInfo.avatar_url.startsWith('data:image/')) {
+          console.log('用户有base64头像数据，将正常显示')
+        } else {
+          console.log('用户头像URL:', latestUserInfo.avatar_url)
+        }
+      } catch (error) {
+        console.warn('查询用户最新信息失败，使用本地缓存:', error.message)
+        // 如果查询失败，使用本地缓存的用户信息
+        this.userForm = {
+          ...this.userForm,
+          avatar_url: userInfo.avatar_url || '',
+          username: userInfo.username || '',
+          email: userInfo.email || '',
+          phone: userInfo.phone || ''
+        }
+        console.log('使用本地缓存的头像数据:', this.userForm.avatar_url)
       }
+
+      // 清除之前的预览图片
+      this.avatarPreview = null
+
+      console.log('=== 最终检查 ===')
+      console.log('最终的userForm.avatar_url:', this.userForm.avatar_url)
+      console.log('当前localStorage中的userInfo:')
+      const currentLocalStorage = localStorage.getItem('userInfo')
+      if (currentLocalStorage) {
+        try {
+          const parsedUserInfo = JSON.parse(currentLocalStorage)
+          console.log('  - 用户名:', parsedUserInfo.username)
+          console.log('  - 头像数据存在:', !!parsedUserInfo.avatar_url)
+          if (parsedUserInfo.avatar_url) {
+            console.log('  - 头像数据类型:', typeof parsedUserInfo.avatar_url)
+            console.log('  - 头像数据长度:', parsedUserInfo.avatar_url.length)
+            console.log('  - 是否为base64:', parsedUserInfo.avatar_url.startsWith('data:image/'))
+          }
+        } catch (e) {
+          console.error('localStorage中的userInfo格式错误:', e)
+        }
+      } else {
+        console.log('localStorage中没有userInfo')
+      }
+      console.log('=== Settings页面mounted结束 ===')
 
       // 获取课表设置
       const result = await this.$store.dispatch('settings/GetSettings')
@@ -611,18 +877,51 @@ export default {
   margin-bottom: 20px;
 }
 
+.avatar-upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .avatar-uploader {
-  border: 1px dashed #d9d9d9;
-  border-radius: 6px;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   width: 100px;
   height: 100px;
+  transition: all 0.3s ease;
 }
 
 .avatar-uploader:hover {
   border-color: #409eff;
+}
+
+.avatar-uploader:hover .avatar-upload-overlay {
+  opacity: 1;
+}
+
+.avatar-upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 12px;
+}
+
+.avatar-upload-overlay i {
+  font-size: 20px;
+  margin-bottom: 4px;
 }
 
 .avatar-uploader-icon {
@@ -638,6 +937,24 @@ export default {
   width: 100px;
   height: 100px;
   display: block;
+  object-fit: cover;
+}
+
+.avatar-upload-tips {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.preview-tip {
+  color: #409eff;
+  margin: 0 0 4px 0;
+  font-weight: 500;
+}
+
+.format-tip {
+  margin: 0;
 }
 
 .el-divider {
@@ -679,6 +996,14 @@ export default {
     height: 80px;
   }
 
+  .avatar-upload-overlay i {
+    font-size: 16px;
+  }
+
+  .avatar-upload-tips {
+    font-size: 11px;
+  }
+
   .el-divider {
     margin: 15px 0;
   }
@@ -712,6 +1037,14 @@ export default {
   .avatar {
     width: 70px;
     height: 70px;
+  }
+
+  .avatar-upload-overlay i {
+    font-size: 14px;
+  }
+
+  .avatar-upload-tips {
+    font-size: 10px;
   }
 }
 
