@@ -16,8 +16,14 @@ const authentication = {
       if (userInfo) {
         const userInfoStr = JSON.stringify(userInfo)
         localStorage.setItem('userInfo', userInfoStr)
-        console.log('用户信息已保存到localStorage，包含头像数据:', !!userInfo.avatar_url)
-        if (userInfo.avatar_url && userInfo.avatar_url.startsWith('data:image/')) {
+        console.log(
+          '用户信息已保存到localStorage，包含头像数据:',
+          !!userInfo.avatar_url
+        )
+        if (
+          userInfo.avatar_url &&
+          userInfo.avatar_url.startsWith('data:image/')
+        ) {
           console.log('localStorage中保存的是base64头像数据')
         }
       } else {
@@ -104,16 +110,24 @@ const authentication = {
             if (userData.avatarUrl && !userData.avatar_url) {
               userData.avatar_url = userData.avatarUrl
               delete userData.avatarUrl
-              console.log('Store GetUserByUsername 字段名转换：avatarUrl -> avatar_url')
+              console.log(
+                'Store GetUserByUsername 字段名转换：avatarUrl -> avatar_url'
+              )
             }
 
             if (userData.avatar_url) {
               console.log('Store GetUserByUsername 头像数据:')
               console.log('  - 数据类型:', typeof userData.avatar_url)
               console.log('  - 数据长度:', userData.avatar_url.length)
-              console.log('  - 是否为base64:', userData.avatar_url.startsWith('data:image/'))
+              console.log(
+                '  - 是否为base64:',
+                userData.avatar_url.startsWith('data:image/')
+              )
               if (userData.avatar_url.startsWith('data:image/')) {
-                console.log('  - base64前缀:', userData.avatar_url.substring(0, 50) + '...')
+                console.log(
+                  '  - base64前缀:',
+                  userData.avatar_url.substring(0, 50) + '...'
+                )
               }
             } else {
               console.log('Store GetUserByUsername 响应中无头像数据')
@@ -215,9 +229,17 @@ const authentication = {
 
                 // 检查后端是否正确返回了我们发送的avatarUrl
                 // 如果发送的是base64数据，但后端返回的不是，则使用发送的数据
-                if (data.avatarUrl && data.avatarUrl.startsWith('data:image/')) {
-                  if (!normalizedData.avatar_url || !normalizedData.avatar_url.startsWith('data:image/')) {
-                    console.warn('后端没有正确保存base64头像数据，使用前端数据')
+                if (
+                  data.avatarUrl &&
+                  data.avatarUrl.startsWith('data:image/')
+                ) {
+                  if (
+                    !normalizedData.avatar_url ||
+                    !normalizedData.avatar_url.startsWith('data:image/')
+                  ) {
+                    console.warn(
+                      '后端没有正确保存base64头像数据，使用前端数据'
+                    )
                     normalizedData.avatar_url = data.avatarUrl
                   }
                 }
@@ -241,6 +263,9 @@ const authentication = {
                 }
                 if (data.phone !== undefined) {
                   updatedUserInfo.phone = data.phone
+                }
+                if (data.password !== undefined) {
+                  updatedUserInfo.password = data.password
                 }
 
                 console.log('合并后的用户信息:', updatedUserInfo)

@@ -26,15 +26,23 @@
                     :auto-upload="false"
                     :on-change="handleAvatarChange"
                   >
-                    <img :src="currentAvatarUrl" class="avatar" alt="用户头像" />
+                    <img
+                      :src="currentAvatarUrl"
+                      class="avatar"
+                      alt="用户头像"
+                    />
                     <div class="avatar-upload-overlay">
                       <i class="el-icon-camera"></i>
                       <div>点击上传</div>
                     </div>
                   </el-upload>
                   <div class="avatar-upload-tips">
-                    <p v-if="avatarPreview" class="preview-tip">预览模式，保存后生效</p>
-                    <p class="format-tip">支持 JPG、PNG 格式，文件大小不超过 2MB</p>
+                    <p v-if="avatarPreview" class="preview-tip">
+                      预览模式，保存后生效
+                    </p>
+                    <p class="format-tip">
+                      支持 JPG、PNG 格式，文件大小不超过 2MB
+                    </p>
                   </div>
                 </div>
               </el-form-item>
@@ -43,6 +51,7 @@
                 <el-input
                   v-model="userForm.username"
                   :size="isMobile ? 'small' : 'medium'"
+                  disabled
                 ></el-input>
               </el-form-item>
 
@@ -53,15 +62,6 @@
                 ></el-input>
               </el-form-item>
 
-              <el-form-item label="手机号">
-                <el-input
-                  v-model="userForm.phone"
-                  :size="isMobile ? 'small' : 'medium'"
-                ></el-input>
-              </el-form-item>
-
-              <el-divider></el-divider>
-
               <el-form-item>
                 <el-button
                   type="primary"
@@ -69,6 +69,52 @@
                   @click="saveUserSettings"
                 >
                   保存用户设置
+                </el-button>
+              </el-form-item>
+
+              <el-divider>修改密码</el-divider>
+
+              <el-form-item label="原始密码">
+                <el-input
+                  v-model="passwordForm.oldPassword"
+                  type="password"
+                  :size="isMobile ? 'small' : 'medium'"
+                  placeholder="请输入原始密码"
+                  show-password
+                  @input="handleOldPasswordInput"
+                ></el-input>
+              </el-form-item>
+
+              <el-form-item label="新密码">
+                <el-input
+                  v-model="passwordForm.newPassword"
+                  type="password"
+                  :size="isMobile ? 'small' : 'medium'"
+                  placeholder="请先输入原始密码"
+                  show-password
+                  :disabled="!isNewPasswordEnabled"
+                ></el-input>
+              </el-form-item>
+
+              <el-form-item label="确认新密码">
+                <el-input
+                  v-model="passwordForm.confirmPassword"
+                  type="password"
+                  :size="isMobile ? 'small' : 'medium'"
+                  placeholder="请再次输入新密码"
+                  show-password
+                  :disabled="!isNewPasswordEnabled"
+                ></el-input>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button
+                  type="warning"
+                  :size="isMobile ? 'small' : 'medium'"
+                  @click="changePassword"
+                  :disabled="!isPasswordChangeEnabled"
+                >
+                  修改密码
                 </el-button>
               </el-form-item>
             </el-form>
@@ -281,8 +327,12 @@ export default {
       userForm: {
         avatar_url: '', // 用户头像
         username: '', // 用户名
-        email: '', // 邮箱
-        phone: '' // 手机号
+        email: '' // 邮箱
+      },
+      passwordForm: {
+        oldPassword: '', // 原始密码
+        newPassword: '', // 新密码
+        confirmPassword: '' // 确认新密码
       },
       scheduleForm: {
         name: '',
@@ -306,6 +356,20 @@ export default {
     }),
     isMobile () {
       return this.windowWidth < 768
+    },
+    // 新密码输入框是否启用
+    isNewPasswordEnabled () {
+      return this.passwordForm.oldPassword.trim() !== ''
+    },
+    // 修改密码按钮是否启用
+    isPasswordChangeEnabled () {
+      return (
+        this.passwordForm.oldPassword.trim() !== '' &&
+        this.passwordForm.newPassword.trim() !== '' &&
+        this.passwordForm.confirmPassword.trim() !== '' &&
+        this.passwordForm.newPassword === this.passwordForm.confirmPassword &&
+        this.passwordForm.newPassword.length >= 6
+      )
     },
     // 使用computed来管理上课时间数据，避免直接修改
     localClassTimes: {
@@ -352,7 +416,9 @@ export default {
           avatarUrl.includes('\\Documents\\') ||
           avatarUrl.includes('\\Pictures\\') ||
           // 仅文件名（没有协议、域名或以/开头的路径）
-          (!avatarUrl.includes('://') && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('http'))
+          (!avatarUrl.includes('://') &&
+            !avatarUrl.startsWith('/') &&
+            !avatarUrl.startsWith('http'))
 
         if (isLocalFile) {
           // 本地文件路径/文件名无法在浏览器中直接显示，使用默认头像
@@ -380,7 +446,6 @@ export default {
       const updateData = {
         username: this.userForm.username,
         email: this.userForm.email,
-        phone: this.userForm.phone,
         avatarUrl: this.userForm.avatar_url // 转换字段名：avatar_url -> avatarUrl
       }
 
@@ -390,9 +455,15 @@ export default {
       if (updateData.avatarUrl) {
         console.log('  - 数据类型:', typeof updateData.avatarUrl)
         console.log('  - 数据长度:', updateData.avatarUrl.length)
-        console.log('  - 是否为base64:', updateData.avatarUrl.startsWith('data:image/'))
+        console.log(
+          '  - 是否为base64:',
+          updateData.avatarUrl.startsWith('data:image/')
+        )
         if (updateData.avatarUrl.startsWith('data:image/')) {
-          console.log('  - base64前缀:', updateData.avatarUrl.substring(0, 50) + '...')
+          console.log(
+            '  - base64前缀:',
+            updateData.avatarUrl.substring(0, 50) + '...'
+          )
         }
       } else {
         console.log('  - 没有头像数据')
@@ -408,7 +479,10 @@ export default {
           const returnedAvatarUrl = updatedUserInfo.avatar_url
 
           if (sentAvatarUrl && sentAvatarUrl.startsWith('data:image/')) {
-            if (returnedAvatarUrl && returnedAvatarUrl.startsWith('data:image/')) {
+            if (
+              returnedAvatarUrl &&
+              returnedAvatarUrl.startsWith('data:image/')
+            ) {
               this.$message.success('用户设置保存成功，头像已更新')
               console.log('头像数据正确保存到后端')
             } else {
@@ -417,13 +491,19 @@ export default {
                 type: 'warning',
                 duration: 5000
               })
-              console.warn('发送的头像数据:', sentAvatarUrl.substring(0, 50) + '...')
+              console.warn(
+                '发送的头像数据:',
+                sentAvatarUrl.substring(0, 50) + '...'
+              )
               console.warn('返回的头像数据:', returnedAvatarUrl)
 
               // 如果后端没有正确返回头像数据，我们强制使用前端的数据更新localStorage
               if (updatedUserInfo) {
                 updatedUserInfo.avatar_url = sentAvatarUrl
-                localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
+                localStorage.setItem(
+                  'userInfo',
+                  JSON.stringify(updatedUserInfo)
+                )
                 console.log('已强制更新localStorage中的头像数据')
               }
             }
@@ -434,7 +514,10 @@ export default {
           // 使用返回的用户信息更新本地存储
           if (updatedUserInfo) {
             localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
-            console.log('localStorage已更新，头像数据:', !!updatedUserInfo.avatar_url)
+            console.log(
+              'localStorage已更新，头像数据:',
+              !!updatedUserInfo.avatar_url
+            )
           }
 
           // 确保token也同步保存
@@ -452,9 +535,17 @@ export default {
             if (verifyUserInfo) {
               try {
                 const parsedInfo = JSON.parse(verifyUserInfo)
-                console.log('验证保存结果 - localStorage中的头像数据:', !!parsedInfo.avatar_url)
-                if (parsedInfo.avatar_url && parsedInfo.avatar_url.startsWith('data:image/')) {
-                  console.log('验证通过：localStorage中确实保存了base64头像数据')
+                console.log(
+                  '验证保存结果 - localStorage中的头像数据:',
+                  !!parsedInfo.avatar_url
+                )
+                if (
+                  parsedInfo.avatar_url &&
+                  parsedInfo.avatar_url.startsWith('data:image/')
+                ) {
+                  console.log(
+                    '验证通过：localStorage中确实保存了base64头像数据'
+                  )
                 }
               } catch (e) {
                 console.error('验证localStorage数据时出错:', e)
@@ -636,7 +727,9 @@ export default {
         console.log('base64数据长度:', base64Data.length)
         console.log('base64前缀:', base64Data.substring(0, 50) + '...')
 
-        this.$message.success(`头像已选择 (${(base64Data.length / 1024).toFixed(1)}KB)`)
+        this.$message.success(
+          `头像已选择 (${(base64Data.length / 1024).toFixed(1)}KB)`
+        )
       }
 
       reader.onerror = () => {
@@ -645,6 +738,79 @@ export default {
 
       // 读取文件为base64格式
       reader.readAsDataURL(file.raw)
+    },
+
+    // 处理原始密码输入
+    handleOldPasswordInput () {
+      // 当原始密码为空时，清空新密码和确认密码
+      if (this.passwordForm.oldPassword.trim() === '') {
+        this.passwordForm.newPassword = ''
+        this.passwordForm.confirmPassword = ''
+      }
+    },
+
+    // 修改密码
+    changePassword () {
+      // 验证新密码和确认密码是否一致
+      if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
+        this.$message.error('新密码和确认密码不一致')
+        return
+      }
+
+      // 验证新密码长度
+      if (this.passwordForm.newPassword.length < 6) {
+        this.$message.error('新密码长度至少为6位')
+        return
+      }
+
+      // 验证原密码是否正确（与userInfo中的密码对比）
+      if (this.passwordForm.oldPassword !== this.userInfo.password) {
+        this.$message.error('原密码输入错误')
+        return
+      }
+
+      // 验证新密码是否与原密码相同
+      if (this.passwordForm.newPassword === this.passwordForm.oldPassword) {
+        this.$message.error('新密码不能与原密码相同')
+        return
+      }
+
+      this.loading = true
+
+      // 准备发送给后端的数据（包含旧密码供后端验证）
+      const passwordData = {
+        username: this.userForm.username,
+        password: this.passwordForm.newPassword,
+        oldPassword: this.passwordForm.oldPassword
+      }
+
+      console.log('修改密码请求数据:', {
+        username: passwordData.username,
+        oldPasswordLength: passwordData.oldPassword.length,
+        newPasswordLength: passwordData.password.length
+      })
+
+      // 调用后端API修改密码
+      this.$store
+        .dispatch('UpdateUserInfo', passwordData)
+        .then((updatedUserInfo) => {
+          this.$message.success('密码修改成功')
+          console.log('密码修改成功，用户信息已更新:', updatedUserInfo)
+
+          // 清空密码表单
+          this.passwordForm = {
+            oldPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+          }
+        })
+        .catch((err) => {
+          console.error('修改密码失败:', err)
+          this.$message.error(err.message || '修改密码失败，请重试')
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
 
     // 上传头像到服务器的方法（示例）
@@ -733,12 +899,18 @@ export default {
 
       console.log('=== Settings页面mounted开始 ===')
       console.log('本地缓存的用户信息:', userInfo)
-      console.log('localStorage中的userInfo:', localStorage.getItem('userInfo'))
+      console.log(
+        'localStorage中的userInfo:',
+        localStorage.getItem('userInfo')
+      )
 
       // 主动查询用户的最新信息，确保头像数据是最新的
       try {
         console.log('查询用户最新信息:', userInfo.username)
-        const latestUserInfo = await this.$store.dispatch('GetUserByUsername', userInfo.username)
+        const latestUserInfo = await this.$store.dispatch(
+          'GetUserByUsername',
+          userInfo.username
+        )
         console.log('从后端获取到的最新用户信息:', latestUserInfo)
 
         // 检查头像数据
@@ -746,9 +918,15 @@ export default {
           console.log('后端返回的头像数据:')
           console.log('  - 数据类型:', typeof latestUserInfo.avatar_url)
           console.log('  - 数据长度:', latestUserInfo.avatar_url.length)
-          console.log('  - 是否为base64:', latestUserInfo.avatar_url.startsWith('data:image/'))
+          console.log(
+            '  - 是否为base64:',
+            latestUserInfo.avatar_url.startsWith('data:image/')
+          )
           if (latestUserInfo.avatar_url.startsWith('data:image/')) {
-            console.log('  - base64前缀:', latestUserInfo.avatar_url.substring(0, 50) + '...')
+            console.log(
+              '  - base64前缀:',
+              latestUserInfo.avatar_url.substring(0, 50) + '...'
+            )
           } else {
             console.log('  - 完整数据:', latestUserInfo.avatar_url)
           }
@@ -761,14 +939,16 @@ export default {
           ...this.userForm,
           avatar_url: latestUserInfo.avatar_url || '', // 使用最新的头像数据
           username: latestUserInfo.username || '',
-          email: latestUserInfo.email || '',
-          phone: latestUserInfo.phone || ''
+          email: latestUserInfo.email || ''
         }
 
         console.log('更新后的userForm.avatar_url:', this.userForm.avatar_url)
 
         // 如果用户没有头像或头像为空，记录日志
-        if (!latestUserInfo.avatar_url || latestUserInfo.avatar_url.trim() === '') {
+        if (
+          !latestUserInfo.avatar_url ||
+          latestUserInfo.avatar_url.trim() === ''
+        ) {
           console.log('用户暂无头像，将显示默认头像')
         } else if (latestUserInfo.avatar_url.startsWith('data:image/')) {
           console.log('用户有base64头像数据，将正常显示')
@@ -782,8 +962,7 @@ export default {
           ...this.userForm,
           avatar_url: userInfo.avatar_url || '',
           username: userInfo.username || '',
-          email: userInfo.email || '',
-          phone: userInfo.phone || ''
+          email: userInfo.email || ''
         }
         console.log('使用本地缓存的头像数据:', this.userForm.avatar_url)
       }
@@ -803,7 +982,10 @@ export default {
           if (parsedUserInfo.avatar_url) {
             console.log('  - 头像数据类型:', typeof parsedUserInfo.avatar_url)
             console.log('  - 头像数据长度:', parsedUserInfo.avatar_url.length)
-            console.log('  - 是否为base64:', parsedUserInfo.avatar_url.startsWith('data:image/'))
+            console.log(
+              '  - 是否为base64:',
+              parsedUserInfo.avatar_url.startsWith('data:image/')
+            )
           }
         } catch (e) {
           console.error('localStorage中的userInfo格式错误:', e)
