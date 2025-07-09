@@ -6,19 +6,12 @@ function resolve(dir) {
 
 module.exports = {
   devServer: {
-    host: process.env.VUE_APP_DEV_SERVER_HOST || '0.0.0.0',
-    port: parseInt(process.env.VUE_APP_DEV_SERVER_PORT) || 12011,
-    hot: true,
-    allowedHosts: ['all'],
-    client: {
-      webSocketURL: 'auto://0.0.0.0:0/ws'  // 关键：解决HMR连接问题
-    },
+    host: '0.0.0.0', // 直接指定，不使用环境变量
+    port: 12011,     // 直接指定端口
     proxy: {
-      '^/(?!.*\\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))': {
+      '/': {
         target: process.env.VUE_APP_API_SERVER_URL,
-        changeOrigin: true,
-        ws: true,
-        logLevel: 'debug'  // 查看代理日志
+        changeOrigin: true
       }
     }
   },
