@@ -2,7 +2,7 @@ import { axios } from '@/util/request'
 
 export const getCoursePage = (params) => {
   return axios({
-    url: 'course',
+    url: '/course',
     method: 'get',
     params
   })
@@ -10,21 +10,21 @@ export const getCoursePage = (params) => {
 
 export const getCourseRefList = () => {
   return axios({
-    url: 'course/list/ref',
+    url: '/course/list/ref',
     method: 'get'
   })
 }
 
 export const getCourseById = (id) => {
   return axios({
-    url: 'course/' + id,
+    url: '/course/' + id,
     method: 'get'
   })
 }
 
 export const saveCourse = (data) => {
   return axios({
-    url: 'course',
+    url: '/course',
     method: 'post',
     data
   })
