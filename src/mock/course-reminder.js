@@ -6,7 +6,7 @@ const mock = new MockAdapter(axios, { delayResponse: 500 })
 // 模拟数据库：用户信息（username -> user object）
 const userMap = {
   admin: {
-    username: 'admin',
+    username: 'adm',
     password: '123456',
     name: '管理员',
     email: 'admin@example.com',
