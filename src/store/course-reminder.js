@@ -30,7 +30,7 @@ const courseReminder = {
     GetUpcomingReminders ({ commit }, params) {
       return new Promise((resolve, reject) => {
         Api.getUpcomingReminders(params)
-          .then(res => resolve(res.data.records))
+          .then(res => resolve(res.data))
           .catch(err => reject(err))
       })
     }

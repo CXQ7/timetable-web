@@ -5,7 +5,7 @@
     </div>
 
     <!-- 顶部开关：站内提醒 & 邮件提醒 -->
-    <el-row class="search-container" gutter="20">
+    <el-row class="search-container" :gutter="20">
       <el-col :span="12">
         <div class="switch-container">
           <el-switch
@@ -69,12 +69,18 @@ export default {
     ]),
     // 初始化：拉取用户设置 & 如果站内提醒开启则拉取列表
     init () {
+      console.log('[init] 获取提醒设置中...')
       this.GetReminderSettings({ username: this.userInfo.username })
         .then(res => {
+          console.log('[init] 获取到的提醒设置：', res)
           this.settings = res
           if (this.settings.inSite) {
+            console.log('[init] 开启了站内提醒，加载提醒数据...')
             this.loadReminders()
           }
+        })
+        .finally(() => {
+          this.clearReminderDot()
         })
     },
     // 切换设置时调用
@@ -87,24 +93,39 @@ export default {
           return
         }
       }
-      this.UpdateReminderSettings({ username: this.userInfo.username, [key]: this.settings[key] })
+      console.log('[onToggle] PUT 请求数据：', {
+        username: this.userInfo.username,
+        inSite: this.settings.inSite,
+        email: this.settings.email
+      })
+      this.UpdateReminderSettings(
+        {
+          username: this.userInfo.username,
+          inSite: this.settings.inSite,
+          email: this.settings.email
+        })
         .then(() => {
           this.$message.success('提醒设置已更新')
           if (key === 'inSite' && this.settings.inSite) {
+            console.log('[onToggle] 开启了站内提醒，加载提醒数据')
             this.loadReminders()
           } else if (key === 'inSite') {
+            console.log('[onToggle] 关闭了站内提醒，清空提醒列表')
             this.reminders = []
           }
         })
     },
     // 拉取最近 1 条即将提醒的数据
     loadReminders () {
+      console.log('[loadReminders] 开始拉取即将提醒数据')
       this.loading = true
       this.GetUpcomingReminders({ username: this.userInfo.username, limit: 1 })
         .then(res => {
+          console.log('[loadReminders] 获取到提醒数据：', res)
           this.reminders = res
           // 有新提醒时，设置红点
           if (res && res.length > 0) {
+            console.log('[loadReminders] 有提醒数据，设置红点')
             this.$store.commit('SET_REMINDER_DOT', true)
           }
         })
@@ -114,6 +135,7 @@ export default {
     },
     // 用户点击页面时，消除红点
     clearReminderDot () {
+      console.log('[clearReminderDot] 清除提醒红点')
       this.$store.commit('SET_REMINDER_DOT', false)
     }
   },

@@ -125,17 +125,27 @@ export default {
     },
 
     checkReminderDot () {
+      console.log('[轮询] 开始检查提醒设置')
       // 先判断是否开启了站内提醒
       this.GetReminderSettings({ username: this.userInfo.username }).then(
         (settings) => {
+          console.log('[轮询] 当前提醒设置：', settings)
           if (settings.inSite) {
+            console.log('[轮询] 准备请求 upcoming reminders')
             this.GetUpcomingReminders({
               username: this.userInfo.username,
               limit: 1
             }).then((reminders) => {
+              console.log('[轮询] 获取到的提醒数据：', reminders)
               if (reminders && reminders.length > 0) {
                 this.$store.commit('SET_REMINDER_DOT', true)
               }
+            })
+          }
+          if (!settings.inSite && settings.email) {
+            this.GetUpcomingReminders({
+              username: this.userInfo.username,
+              limit: 1
             })
           }
         }
