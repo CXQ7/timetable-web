@@ -52,15 +52,25 @@
       <el-button type="primary" size="small" @click="reset">重置</el-button>
       <el-button slot="reference" type="danger" size="small" :disabled="!(idList && idList.length > 0)" @click="remove">删除</el-button>
     </div>
-    <el-table stripe border :data="data" @selection-change="handleSelectionChange">
+    <el-table stripe border :data="data" @selection-change="handleSelectionChange" :row-class-name="getRowClassName">
       <el-table-column type="selection" width="40"></el-table-column>
-      <el-table-column type="index" label="序号" width="50"></el-table-column>
-      <el-table-column prop="date" label="日期" width="110"></el-table-column>
-      <el-table-column prop="attendTime" label="上课时间" width="90"></el-table-column>
-      <el-table-column prop="finishTime" label="下课时间" width="90"></el-table-column>
-      <el-table-column prop="classroomName" label="教室" width="120"></el-table-column>
-      <el-table-column prop="courseName" label="课程" width="120"></el-table-column>
-      <el-table-column prop="teacherName" label="老师" width="120"></el-table-column>
+      <el-table-column type="index" label="序号" width="80"></el-table-column>
+      <el-table-column prop="date" label="日期" width="140"></el-table-column>
+      <el-table-column prop="attendTime" label="上课时间" width="120"></el-table-column>
+      <el-table-column prop="finishTime" label="下课时间" width="120"></el-table-column>
+      <el-table-column prop="classroomName" label="教室" width="150"></el-table-column>
+      <el-table-column prop="courseName" label="课程" width="160">
+        <template slot-scope="scope">
+          <span>{{ scope.row.courseName }}</span>
+          <el-tag
+            :type="getCourseTypeTagType(scope.row)"
+            size="mini"
+            style="margin-left: 5px;">
+            {{ getCourseTypeText(scope.row) }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="teacherName" label="老师" width="150"></el-table-column>
       <el-table-column prop="remarks" label="备注" show-overflow-tooltip></el-table-column>
     </el-table>
   </el-card>
@@ -81,6 +91,7 @@ export default {
       teacherData: [],
       params: {},
       idList: [],
+      currentTheme: localStorage.getItem('theme') || 'default',
       datePickerOptions: {
         firstDayOfWeek: 1
       },
@@ -171,10 +182,53 @@ export default {
         this.params.endDate = value[1]
         console.log('更新日期范围:', this.params.startDate, '至', this.params.endDate)
       }
+    },
+    getRowClassName ({ row, rowIndex }) {
+      // 优先使用课程调度数据中的课程类型，如果没有则从课程数据中查找
+      let courseType = row.courseType
+      if (!courseType && row.courseId) {
+        const course = this.courseData.find(c => c.id === row.courseId)
+        courseType = course ? course.courseType : 1 // 默认为必修
+      }
+      const isRequired = courseType === 1 || courseType === '1'
+      return isRequired ? 'required-course-row' : 'elective-course-row'
+    },
+    getCourseTypeText (row) {
+      // 优先使用课程调度数据中的课程类型，如果没有则从课程数据中查找
+      let courseType = row.courseType
+      if (!courseType && row.courseId) {
+        const course = this.courseData.find(c => c.id === row.courseId)
+        courseType = course ? course.courseType : 1 // 默认为必修
+      }
+      return (courseType === 1 || courseType === '1') ? '必修' : '选修'
+    },
+    getCourseTypeTagType (row) {
+      // 优先使用课程调度数据中的课程类型，如果没有则从课程数据中查找
+      let courseType = row.courseType
+      if (!courseType && row.courseId) {
+        const course = this.courseData.find(c => c.id === row.courseId)
+        courseType = course ? course.courseType : 1 // 默认为必修
+      }
+      return (courseType === 1 || courseType === '1') ? 'danger' : 'success'
+    },
+    applyTheme () {
+      const body = document.body
+      body.className = body.className.replace(/theme-\w+/g, '')
+      if (this.currentTheme !== 'default') {
+        body.classList.add(this.currentTheme)
+      }
     }
   },
   mounted () {
     this.init()
+    this.applyTheme()
+    // 监听主题变化
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'theme') {
+        this.currentTheme = e.newValue || 'default'
+        this.applyTheme()
+      }
+    })
   }
 }
 </script>
@@ -187,44 +241,56 @@ export default {
   width: 240px;
 }
 
-/* 日期选择器输入框高度和内容对齐 */
-#course-scheduling-list .el-date-editor .el-input__inner {
+/* 日期选择器整体样式 */
+#course-scheduling-list .el-date-editor {
+  min-width: 300px !important;
+  width: 100% !important;
+  max-width: 340px !important;
   height: 32px !important;
-  line-height: 32px !important;
-  font-size: 15px !important;
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #dcdfe6 !important;
+  border-radius: 4px !important;
   padding: 0 8px !important;
-  vertical-align: middle !important;
+  background-color: #ffffff !important;
 }
 
-/* "至"分隔符垂直居中 */
+/* 日期选择器输入框样式 */
+#course-scheduling-list .el-date-editor .el-range-input {
+  width: 45% !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 14px !important;
+  padding: 0 4px !important;
+  border: none !important;
+  background: transparent !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  outline: none !important;
+}
+
+/* "至"分隔符样式 */
 #course-scheduling-list .el-date-editor .el-range-separator {
-  background: none !important;
-  color: #333 !important;
-  font-size: 15px !important;
-  height: 32px !important;
-  line-height: 32px !important;
-  margin: 0 2px !important;
-  box-shadow: none !important;
-  padding: 0 2px !important;
+  width: 10% !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 14px !important;
+  color: #606266 !important;
+  background: transparent !important;
+  border: none !important;
+  text-align: center !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  vertical-align: middle !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
-#course-scheduling-list .el-date-editor {
-  min-width: 220px !important;
-  width: 100% !important;
-  max-width: 340px !important;
-}
-
-#course-scheduling-list .el-date-editor .el-range-input {
-  width: 48% !important;
-  font-size: 15px !important;
-  padding: 0 8px !important;
-  height: 32px !important;
+/* 日期选择器图标样式 */
+#course-scheduling-list .el-date-editor .el-input__icon {
   line-height: 32px !important;
-  vertical-align: middle !important;
+  color: #c0c4cc !important;
 }
 
 /* 确保容器有足够空间 */
@@ -237,5 +303,137 @@ export default {
 #course-scheduling-list .el-form-item:first-child {
   position: relative;
   z-index: 1000;
+}
+
+/* 课程类型行样式 */
+.required-course-row {
+  background-color: #f0f7ff !important;
+  border-left: 4px solid #409EFF !important;
+}
+
+.required-course-row:hover > td {
+  background-color: #e6f3ff !important;
+}
+
+.elective-course-row {
+  background-color: #f5f5f5 !important;
+  border-left: 4px solid #909399 !important;
+}
+
+.elective-course-row:hover > td {
+  background-color: #ebebeb !important;
+}
+
+/* 确保条纹效果与课程类型样式兼容 */
+.el-table--striped .required-course-row:nth-child(even) {
+  background-color: #f0f7ff !important;
+}
+
+.el-table--striped .elective-course-row:nth-child(even) {
+  background-color: #f5f5f5 !important;
+}
+
+.el-table--striped .required-course-row:nth-child(odd) {
+  background-color: #f0f7ff !important;
+}
+
+.el-table--striped .elective-course-row:nth-child(odd) {
+  background-color: #f5f5f5 !important;
+}
+
+/* 课程类型标签样式优化 */
+.el-tag--danger {
+  background-color: #409EFF !important;
+  border-color: #409EFF !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  min-width: 40px !important;
+  height: 22px !important;
+  line-height: 1 !important;
+  padding: 0 8px !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.el-tag--success {
+  background-color: #909399 !important;
+  border-color: #909399 !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  min-width: 40px !important;
+  height: 22px !important;
+  line-height: 1 !important;
+  padding: 0 8px !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+/* 暗色风主题特定标签样式 */
+.theme-dark .el-tag--danger {
+  background-color: #4a4a4a !important;
+  border-color: #4a4a4a !important;
+  color: #ffffff !important;
+}
+
+.theme-dark .el-tag--success {
+  background-color: #999999 !important;
+  border-color: #999999 !important;
+  color: #ffffff !important;
+}
+
+/* 暗色风主题行样式 */
+.theme-dark .required-course-row {
+  background-color: #3a3a3a !important;
+  border-left: 4px solid #4a4a4a !important;
+}
+
+.theme-dark .required-course-row:hover > td {
+  background-color: #444444 !important;
+}
+
+.theme-dark .elective-course-row {
+  background-color: #2a2a2a !important;
+  border-left: 4px solid #999999 !important;
+}
+
+.theme-dark .elective-course-row:hover > td {
+  background-color: #333333 !important;
+}
+
+/* 暗色风主题 - 日期选择器样式 */
+.theme-dark #course-scheduling-list .el-date-editor {
+  background-color: #2d2d2d !important;
+  border-color: #606266 !important;
+  color: #ffffff !important;
+}
+
+.theme-dark #course-scheduling-list .el-date-editor:hover {
+  border-color: #999999 !important;
+}
+
+.theme-dark #course-scheduling-list .el-date-editor.is-active {
+  border-color: #666666 !important;
+}
+
+.theme-dark #course-scheduling-list .el-date-editor .el-range-input {
+  background-color: transparent !important;
+  color: #ffffff !important;
+}
+
+.theme-dark #course-scheduling-list .el-date-editor .el-range-separator {
+  background-color: transparent !important;
+  color: #ffffff !important;
+}
+
+.theme-dark #course-scheduling-list .el-date-editor .el-input__icon {
+  color: #c0c4cc !important;
 }
 </style>

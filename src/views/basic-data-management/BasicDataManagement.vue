@@ -22,8 +22,8 @@
 
           <div v-loading="classroomLoading">
             <el-table stripe border :data="classroomData.records">
-              <el-table-column type="index" label="序号" width="50"></el-table-column>
-              <el-table-column prop="name" label="教室名称" width="200" show-overflow-tooltip></el-table-column>
+              <el-table-column type="index" label="序号" width="80"></el-table-column>
+              <el-table-column prop="name" label="教室名称" show-overflow-tooltip></el-table-column>
               <el-table-column
                   fixed="right"
                   label="操作"
@@ -66,10 +66,10 @@
 
           <div v-loading="courseLoading">
             <el-table stripe border :data="courseData.records">
-              <el-table-column type="index" label="序号" width="50"></el-table-column>
-              <el-table-column prop="name" label="课程名称" width="180" show-overflow-tooltip></el-table-column>
-              <el-table-column prop="duration" label="时长(分钟)" width="100"></el-table-column>
-              <el-table-column label="课程类型" width="90">
+              <el-table-column type="index" label="序号" width="80"></el-table-column>
+              <el-table-column prop="name" label="课程名称" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="duration" label="时长(分钟)" width="200"></el-table-column>
+              <el-table-column label="课程类型" width="150">
                 <template slot-scope="scope">
                   <el-tag
                     :type="getCourseTypeTagType(scope.row.courseType)"
@@ -121,8 +121,8 @@
 
           <div v-loading="teacherLoading">
             <el-table stripe border :data="teacherData.records">
-              <el-table-column type="index" label="序号" width="50"></el-table-column>
-              <el-table-column prop="name" label="老师姓名" width="200" show-overflow-tooltip></el-table-column>
+              <el-table-column type="index" label="序号" width="80"></el-table-column>
+              <el-table-column prop="name" label="老师姓名" show-overflow-tooltip></el-table-column>
               <el-table-column
                 fixed="right"
                 label="操作"
@@ -205,6 +205,7 @@ export default {
   data () {
     return {
       activeTab: 'classroom',
+      currentTheme: localStorage.getItem('theme') || 'default',
       // 教室管理相关
       classroomData: [],
       classroomParams: {
@@ -352,11 +353,11 @@ export default {
     },
     getCourseTypeTagType (courseType) {
       if (courseType === 1 || courseType === '1') {
-        return 'success'
+        return 'danger'
       } else if (courseType === 2 || courseType === '2') {
         return 'info'
       } else {
-        return 'success'
+        return 'danger'
       }
     },
     getCourseTypeText (courseType) {
@@ -366,6 +367,13 @@ export default {
         return '选修'
       } else {
         return '必修'
+      }
+    },
+    applyTheme () {
+      const body = document.body
+      body.className = body.className.replace(/theme-\w+/g, '')
+      if (this.currentTheme !== 'default') {
+        body.classList.add(this.currentTheme)
       }
     }
   },
@@ -383,6 +391,14 @@ export default {
   },
   mounted () {
     this.init()
+    this.applyTheme()
+    // 监听主题变化
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'theme') {
+        this.currentTheme = e.newValue || 'default'
+        this.applyTheme()
+      }
+    })
   }
 }
 </script>
@@ -538,16 +554,18 @@ export default {
 
 /* 课程类型标签优化 */
 .basic-data-management .course-type-tag {
-  border-radius: 12px;
-  font-weight: 600;
-  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  padding: 0 8px;
   font-size: 12px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 50px;
+  min-width: 40px;
+  height: 22px;
   text-align: center;
+  box-shadow: none;
 }
 
 /* 表格样式优化 */
@@ -623,20 +641,30 @@ export default {
 
 /* 标签样式优化 */
 .basic-data-management .el-tag {
-  border-radius: 12px;
-  font-weight: 500;
-  padding: 4px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  padding: 0 8px;
   border: none;
+  height: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  text-align: center;
+  box-shadow: none;
 }
 
-.basic-data-management .el-tag--success {
-  background: linear-gradient(135deg, #67c23a, #85ce61);
-  color: white;
+.basic-data-management .el-tag--danger {
+  background-color: #409EFF !important;
+  border-color: #409EFF !important;
+  color: #ffffff !important;
 }
 
 .basic-data-management .el-tag--info {
-  background: linear-gradient(135deg, #909399, #a6a9ad);
-  color: white;
+  background-color: #909399 !important;
+  border-color: #909399 !important;
+  color: #ffffff !important;
 }
 
 /* 暗色主题 - 按钮样式 */
@@ -673,6 +701,19 @@ export default {
 
 .theme-retro-yellow .basic-data-management .operate-item:hover {
   background: linear-gradient(135deg, #a0522d, #b8651f);
+}
+
+/* 暗色主题 - 标签样式 */
+.theme-dark .basic-data-management .el-tag--danger {
+  background-color: #4a4a4a !important;
+  border-color: #4a4a4a !important;
+  color: #ffffff !important;
+}
+
+.theme-dark .basic-data-management .el-tag--info {
+  background-color: #999999 !important;
+  border-color: #999999 !important;
+  color: #ffffff !important;
 }
 
 /* 暗色主题 - 表格和其他元素 */

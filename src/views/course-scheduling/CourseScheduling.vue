@@ -249,7 +249,7 @@ export default {
         },
         titleFormat: function (date) {
           const start = moment(date.start)
-          const end = moment(date.end).subtract(1, 'day')
+          const end = moment(date.end).subtract(1, 'day') // 减去1天，因为currentEnd是下一天的开始
           // 判断视图类型
           if (date.view && date.view.type) {
             if (date.view.type === 'dayGridMonth' || date.view.type === 'dayGridMonth') {
@@ -269,7 +269,7 @@ export default {
         buttonText: {
           today: '今天',
           month: '月',
-          week: '周',
+          week: '星期',
           day: '日',
           list: '周列表'
         },
@@ -417,57 +417,83 @@ export default {
 
       try {
         const calendarApi = this.$refs.fullCalendar.getApi()
-        this.params.startDate = moment(calendarApi.view.currentStart).format(
-          'YYYY-MM-DD'
-        )
-        this.params.endDate = moment(calendarApi.view.currentEnd)
-          .endOf('month')
-          .format('YYYY-MM-DD')
-
+        // 修复日期范围计算问题
+        const viewStart = moment(calendarApi.view.currentStart)
+        const viewEnd = moment(calendarApi.view.currentEnd).subtract(1, 'day') // 减去1天，因为currentEnd是下一天的开始
+        this.params.startDate = viewStart.format('YYYY-MM-DD')
+        this.params.endDate = viewEnd.format('YYYY-MM-DD')
         // 添加当前用户的username
         this.params.username = this.userInfo?.username || ''
-
+        console.log('搜索参数:', {
+          startDate: this.params.startDate,
+          endDate: this.params.endDate,
+          username: this.params.username
+        })
+        // 先获取课程列表，再获取统计数据，确保使用相同的参数
         this.GetCourseSchedulingList(this.params)
           .then((res) => {
             if (res && this.$refs.fullCalendar) {
               // 使用FullCalendar API来更新事件，避免频闪
               const calendarApi = this.$refs.fullCalendar.getApi()
-
               // 移除所有现有事件
               calendarApi.removeAllEvents()
-
               // 批量添加新事件
-              const newEvents = res.map((item) => ({
-                id: item.id,
-                title: `${item.courseName} - ${item.classroomName} - ${item.teacherName}`,
-                start: item.date + ' ' + item.attendTime,
-                end: item.date + ' ' + item.finishTime,
-                extendedProps: {
-                  ...item,
-                  courseName: item.courseName,
-                  classroomName: item.classroomName,
-                  teacherName: item.teacherName,
-                  remarks: item.remarks
-                },
-                backgroundColor: item.backgroundColor,
-                borderColor: item.backgroundColor
-              }))
+              const newEvents = res.map((item) => {
+                // 判断课程类型（必修/选修）
+                // 优先使用课程调度数据中的课程类型，如果没有则从课程数据中查找
+                let courseType = item.courseType
+                if (!courseType && item.courseId) {
+                  const course = this.courseData.find(c => c.id === item.courseId)
+                  courseType = course ? course.courseType : 1 // 默认为必修
+                }
+                const isRequired = courseType === 1 || courseType === '1'
+                // 根据课程类型设置不同的颜色深浅
+                let eventColor = item.backgroundColor || '#409EFF'
+                if (isRequired) {
+                  // 必修课程使用深色
+                  eventColor = this.getRequiredColor(eventColor)
+                } else {
+                  // 选修课程使用浅色
+                  eventColor = this.getElectiveColor(eventColor)
+                }
+                return {
+                  id: item.id,
+                  title: `${item.courseName} - ${item.classroomName} - ${item.teacherName}`,
+                  start: item.date + ' ' + item.attendTime,
+                  end: item.date + ' ' + item.finishTime,
+                  extendedProps: {
+                    ...item,
+                    courseName: item.courseName,
+                    classroomName: item.classroomName,
+                    teacherName: item.teacherName,
+                    courseType: courseType,
+                    remarks: item.remarks,
+                    isRequired: isRequired
+                  },
+                  backgroundColor: eventColor,
+                  borderColor: eventColor,
+                  // 添加自定义类名用于样式控制
+                  classNames: isRequired ? ['required-course-event'] : ['elective-course-event']
+                }
+              })
 
               // 批量添加事件
               newEvents.forEach((event) => {
                 calendarApi.addEvent(event)
               })
             }
+            // 在课程列表加载完成后再获取统计数据，确保数据一致性
+            return this.GetCourseSchedulingCourseCount(this.params)
           })
-          .catch(() => {})
-
-        this.GetCourseSchedulingCourseCount(this.params)
           .then((res) => {
             if (res) {
+              console.log('课程统计数据:', res)
               this.courseCountObj = res
             }
           })
-          .catch(() => {})
+          .catch((error) => {
+            console.error('获取课程数据失败:', error)
+          })
       } catch (error) {
         console.warn('Calendar API not ready:', error)
       }
@@ -495,13 +521,17 @@ export default {
       this.importCourseSchedulingVisible = false
     },
     datesSet (info) {
+      console.log('datesSet 触发 - 视图类型:', info.view.type, '开始日期:', info.start, '结束日期:', info.end)
       // 添加防抖，避免频繁调用
       if (this.searchTimeout) {
         clearTimeout(this.searchTimeout)
       }
+      // 清空当前的统计数据，避免显示过期数据
+      this.courseCountObj = {}
       this.searchTimeout = setTimeout(() => {
+        console.log('防抖后执行搜索')
         this.search()
-      }, 100)
+      }, 150) // 稍微增加延迟时间，确保视图完全切换
     },
     dayHeaderContent (info) {
       if (info.view.type === 'dayGridMonth') {
@@ -509,7 +539,7 @@ export default {
           html: `<div class="fc-scrollgrid-sync-inner"><a class="fc-col-header-cell-cushion">${info.text}</a></div>`
         }
       } else if (info.view.type === 'timeGridWeek') {
-        // 自定义日期格式: 6月30 星期一
+        // 自定义日期格式: 6月30 星期一 (不显示课程数量)
         const dateText = moment(info.date).format('M月D日 dddd')
         return {
           html: `<div class="fc-scrollgrid-sync-inner">
@@ -519,13 +549,10 @@ export default {
                         ).format(
                           'YYYY-MM-DD'
                         )}&quot;,&quot;type&quot;:&quot;day&quot;}" tabindex="0">${dateText}</a>
-                    <div style="font-size: 12px; color: #999; margin-top: 2px;">${this.getCourseCount(
-                      info.date
-                    )}节课</div>
                 </div>`
         }
       } else if (info.view.type === 'timeGridDay') {
-        // 自定义日期格式: 6月30 星期一
+        // 自定义日期格式: 6月30 星期一 (保留日视图的课程数量显示)
         const dateText = moment(info.date).format('M月D日 dddd')
         return {
           html: `<div class="fc-scrollgrid-sync-inner">
@@ -552,8 +579,164 @@ export default {
       return 'unknown view type'
     },
     getCourseCount (date) {
-      const count = this.courseCountObj[moment(date).format('YYYY-MM-DD')]
+      const dateKey = moment(date).format('YYYY-MM-DD')
+      const count = this.courseCountObj[dateKey]
+
+      // 添加调试信息
+      console.log(`获取课程数量 - 日期: ${dateKey}, 统计数据:`, this.courseCountObj, `结果: ${count || 0}`)
+
+      // 如果统计数据为空或者找不到对应日期的数据，使用备用方案
+      if (!this.courseCountObj || typeof this.courseCountObj !== 'object' || count === undefined) {
+        console.warn(`课程统计数据异常，使用备用方案计算 ${dateKey}`)
+        return this.calculateCourseCountFromEvents(date)
+      }
+
       return count || 0
+    },
+    // 根据当前日历中的事件计算课程统计（备用方案）
+    calculateCourseCountFromEvents (date) {
+      const dateKey = moment(date).format('YYYY-MM-DD')
+
+      if (!this.$refs.fullCalendar) {
+        return 0
+      }
+
+      try {
+        const calendarApi = this.$refs.fullCalendar.getApi()
+        const events = calendarApi.getEvents()
+
+        // 统计指定日期的课程数量
+        const dayEvents = events.filter(event => {
+          const eventDate = moment(event.start).format('YYYY-MM-DD')
+          return eventDate === dateKey
+        })
+
+        console.log(`从事件计算 ${dateKey} 的课程数量:`, dayEvents.length)
+        return dayEvents.length
+      } catch (error) {
+        console.error('从事件计算课程数量失败:', error)
+        return 0
+      }
+    },
+    // 统一同步更新所有日期的课程统计
+    syncAllCourseCount () {
+      console.log('开始统一同步课程统计数据')
+
+      if (!this.$refs.fullCalendar) {
+        console.warn('日历组件未准备好，跳过同步')
+        return
+      }
+
+      try {
+        const calendarApi = this.$refs.fullCalendar.getApi()
+        const events = calendarApi.getEvents()
+
+        // 从事件中重新计算所有日期的统计数据
+        const eventCountMap = {}
+        events.forEach(event => {
+          const dateKey = moment(event.start).format('YYYY-MM-DD')
+          eventCountMap[dateKey] = (eventCountMap[dateKey] || 0) + 1
+        })
+
+        console.log('同步后的统计数据:', eventCountMap)
+
+        // 更新统计数据
+        this.courseCountObj = eventCountMap
+
+        // 强制更新视图以重新渲染所有日期头部
+        this.$forceUpdate()
+
+        console.log('课程统计数据同步完成')
+      } catch (error) {
+        console.error('同步课程统计数据时出错:', error)
+      }
+    },
+    // 验证并修复课程统计数据
+    validateAndFixCourseCount () {
+      console.log('开始验证统计数据完整性')
+
+      // 延迟执行，确保事件完全加载
+      setTimeout(() => {
+        if (!this.$refs.fullCalendar) {
+          console.warn('日历组件未准备好，跳过验证')
+          return
+        }
+
+        try {
+          const calendarApi = this.$refs.fullCalendar.getApi()
+          const events = calendarApi.getEvents()
+
+          console.log('当前日历中的事件数量:', events.length)
+
+          // 从事件中重新计算统计数据
+          const eventCountMap = {}
+          events.forEach(event => {
+            const dateKey = moment(event.start).format('YYYY-MM-DD')
+            eventCountMap[dateKey] = (eventCountMap[dateKey] || 0) + 1
+          })
+
+          console.log('从事件计算的统计数据:', eventCountMap)
+          console.log('API返回的统计数据:', this.courseCountObj)
+
+          // 检查是否有不一致的情况
+          let hasInconsistency = false
+          const allDates = new Set([...Object.keys(eventCountMap), ...Object.keys(this.courseCountObj)])
+
+          for (const date of allDates) {
+            const eventCount = eventCountMap[date] || 0
+            const apiCount = this.courseCountObj[date] || 0
+
+            if (eventCount !== apiCount) {
+              console.warn(`日期 ${date} 统计不一致: 事件数量=${eventCount}, API数量=${apiCount}`)
+              hasInconsistency = true
+            }
+          }
+
+          // 如果发现不一致，使用事件数据作为准确数据
+          if (hasInconsistency) {
+            console.log('发现统计数据不一致，使用事件数据修复')
+            this.courseCountObj = eventCountMap
+            // 强制更新视图
+            this.$forceUpdate()
+          } else {
+            console.log('统计数据验证通过')
+          }
+        } catch (error) {
+          console.error('验证统计数据时出错:', error)
+        }
+      }, 500) // 延迟500ms执行
+    },
+    // 强制刷新统计数据
+    forceRefreshCourseCount (retryCount = 0) {
+      console.log('强制刷新统计数据，重试次数:', retryCount)
+      if (this.params && this.params.startDate && this.params.endDate) {
+        this.GetCourseSchedulingCourseCount(this.params)
+          .then((res) => {
+            if (res && Object.keys(res).length > 0) {
+              console.log('强制刷新后的统计数据:', res)
+              this.courseCountObj = res
+              // 强制更新视图以重新渲染日期头部
+              this.$forceUpdate()
+            } else if (retryCount < 3) {
+              // 如果数据仍然为空且重试次数小于3，继续重试
+              console.warn('统计数据仍为空，1秒后重试')
+              setTimeout(() => {
+                this.forceRefreshCourseCount(retryCount + 1)
+              }, 1000)
+            } else {
+              console.error('多次重试后统计数据仍为空')
+            }
+          })
+          .catch((error) => {
+            console.error('强制刷新统计数据失败:', error)
+            if (retryCount < 3) {
+              // 如果出错且重试次数小于3，继续重试
+              setTimeout(() => {
+                this.forceRefreshCourseCount(retryCount + 1)
+              }, 1000)
+            }
+          })
+      }
     },
     handleEventClick (info) {
       this.id = info.event.id
@@ -626,6 +809,10 @@ export default {
       this.currentTheme = themeClass
       localStorage.setItem('theme', themeClass)
       this.applyTheme(themeClass)
+      // 切换主题后重新加载课程数据以更新颜色
+      this.$nextTick(() => {
+        this.search()
+      })
     },
     applyTheme (themeClass) {
       document.body.className = ''
@@ -644,14 +831,19 @@ export default {
       // 创建自定义HTML结构
       const eventElement = document.createElement('div')
       eventElement.className = `custom-event-content ${viewType}-view`
+      // 判断课程类型（必修/选修）
+      const courseType = extendedProps.courseType
+      const isRequired = courseType === 1 || courseType === '1'
+      const courseTypeClass = isRequired ? 'course-required' : 'course-elective'
+      const courseTypeText = isRequired ? '必修' : '选修'
       // 控制显示内容
       const showTeacher = this.getShowTeacher
       const showClassroom = this.getShowClassroom
       // 根据视图类型调整布局
       let detailsHtml = ''
-      detailsHtml += `<div class="event-course"><i class="el-icon-reading"></i><span>${
+      detailsHtml += `<div class="event-course ${courseTypeClass}"><i class="el-icon-reading"></i><span>${
         extendedProps.courseName || ''
-      }</span></div>`
+      }</span><span class="course-type-badge">${courseTypeText}</span></div>`
       if (showClassroom) {
         detailsHtml += `<div class="event-location"><i class="el-icon-location-outline"></i><span>${
           extendedProps.classroomName || ''
@@ -700,6 +892,94 @@ export default {
     batchDeleteSuccess () {
       this.search()
       this.batchDeleteCourseSchedulingVisible = false
+    },
+    // 获取必修课程颜色（深色）
+    getRequiredColor (color) {
+      if (!color) return '#2d5aa0'
+      // 根据当前主题设置不同的深色
+      const currentTheme = this.currentTheme || 'default'
+      // 主题特定的深色
+      const themeColors = {
+        default: '#2d5aa0',
+        'theme-dark': '#4a4a4a',
+        'theme-macaron': '#8b4789',
+        'theme-fresh-green': '#1e7e34',
+        'theme-retro-yellow': '#8b4513'
+      }
+      // 如果有主题特定的颜色，优先使用
+      if (themeColors[currentTheme]) {
+        return themeColors[currentTheme]
+      }
+      // 否则使用通用的深色处理
+      try {
+        if (color.startsWith('#')) {
+          const hex = color.replace('#', '')
+          const r = parseInt(hex.substr(0, 2), 16)
+          const g = parseInt(hex.substr(2, 2), 16)
+          const b = parseInt(hex.substr(4, 2), 16)
+          // 加深颜色（减少亮度，增加对比度）
+          const darkerR = Math.max(0, r - 100)
+          const darkerG = Math.max(0, g - 100)
+          const darkerB = Math.max(0, b - 100)
+          return `#${darkerR.toString(16).padStart(2, '0')}${darkerG.toString(16).padStart(2, '0')}${darkerB.toString(16).padStart(2, '0')}`
+        }
+        if (color.startsWith('rgb')) {
+          const rgb = color.match(/\d+/g)
+          if (rgb && rgb.length >= 3) {
+            const r = Math.max(0, parseInt(rgb[0]) - 100)
+            const g = Math.max(0, parseInt(rgb[1]) - 100)
+            const b = Math.max(0, parseInt(rgb[2]) - 100)
+            return `rgb(${r}, ${g}, ${b})`
+          }
+        }
+        return color
+      } catch (e) {
+        return color
+      }
+    },
+    // 获取选修课程颜色（浅色）
+    getElectiveColor (color) {
+      if (!color) return '#87ceeb'
+      // 根据当前主题设置不同的浅色
+      const currentTheme = this.currentTheme || 'default'
+      // 主题特定的浅色
+      const themeColors = {
+        default: '#87ceeb',
+        'theme-dark': '#999999',
+        'theme-macaron': '#d4a5d4',
+        'theme-fresh-green': '#7dd87d',
+        'theme-retro-yellow': '#d4b483'
+      }
+      // 如果有主题特定的颜色，优先使用
+      if (themeColors[currentTheme]) {
+        return themeColors[currentTheme]
+      }
+      // 否则使用通用的浅色处理
+      try {
+        if (color.startsWith('#')) {
+          const hex = color.replace('#', '')
+          const r = parseInt(hex.substr(0, 2), 16)
+          const g = parseInt(hex.substr(2, 2), 16)
+          const b = parseInt(hex.substr(4, 2), 16)
+          // 变浅颜色（增加亮度，减少饱和度）
+          const lighterR = Math.min(255, r + 100)
+          const lighterG = Math.min(255, g + 100)
+          const lighterB = Math.min(255, b + 100)
+          return `#${lighterR.toString(16).padStart(2, '0')}${lighterG.toString(16).padStart(2, '0')}${lighterB.toString(16).padStart(2, '0')}`
+        }
+        if (color.startsWith('rgb')) {
+          const rgb = color.match(/\d+/g)
+          if (rgb && rgb.length >= 3) {
+            const r = Math.min(255, parseInt(rgb[0]) + 100)
+            const g = Math.min(255, parseInt(rgb[1]) + 100)
+            const b = Math.min(255, parseInt(rgb[2]) + 100)
+            return `rgb(${r}, ${g}, ${b})`
+          }
+        }
+        return color
+      } catch (e) {
+        return color
+      }
     }
   },
   mounted () {
@@ -709,16 +989,31 @@ export default {
     if (userInfo) {
       this.$store.commit('SET_USER_INFO', userInfo)
     }
+    // 添加额外的统计数据检查，确保在组件完全加载后统计数据正确
+    this.$nextTick(() => {
+      setTimeout(() => {
+        if (!this.courseCountObj || Object.keys(this.courseCountObj).length === 0) {
+          console.log('mounted 后检查：统计数据为空，尝试重新获取')
+          this.forceRefreshCourseCount()
+        }
+      }, 2000) // 2秒后检查
+    })
   },
   beforeDestroy () {
-    // 清除定时器
+    // 清除所有定时器
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout)
     }
+    // 清除可能存在的其他定时器
+    const timers = ['searchTimeout', 'retryTimer', 'checkTimer']
+    timers.forEach(timer => {
+      if (this[timer]) {
+        clearTimeout(this[timer])
+      }
+    })
   }
 }
 </script>
-
 <style>
 /* 自定义时间轴样式 - 适应主题变化 */
 .fc-timegrid-slot-label {
@@ -1177,6 +1472,197 @@ body:not([class*="theme-"]) .el-form-item__label {
   line-height: 1.4;
   word-wrap: break-word;
   overflow: hidden;
+}
+
+/* 课程类型标签样式 */
+.course-type-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 6px;
+  text-align: center;
+  min-width: 30px;
+  line-height: 1.2;
+  opacity: 0.9;
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.course-required .course-type-badge {
+  background-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.course-elective .course-type-badge {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 课程名称样式调整 */
+.event-course {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.event-course span:first-child {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 必修课程事件样式 */
+.required-course-event {
+  border-width: 2px !important;
+  border-style: solid !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 600 !important;
+}
+
+.required-course-event .custom-event-content {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)) !important;
+}
+
+.required-course-event .event-time {
+  background: rgba(255, 255, 255, 0.4) !important;
+  font-weight: bold !important;
+}
+
+.required-course-event .course-type-badge {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  border: 2px solid rgba(255, 255, 255, 0.6) !important;
+  font-weight: bold !important;
+}
+
+/* 选修课程事件样式 */
+.elective-course-event {
+  border-width: 1px !important;
+  border-style: solid !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  font-weight: 500 !important;
+  opacity: 0.9 !important;
+}
+
+.elective-course-event .custom-event-content {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)) !important;
+}
+
+.elective-course-event .event-time {
+  background: rgba(255, 255, 255, 0.25) !important;
+  font-weight: 500 !important;
+}
+
+.elective-course-event .course-type-badge {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  font-weight: 500 !important;
+}
+
+/* 主题特定的颜色优化 */
+/* 简约蓝白主题 */
+body:not([class*="theme-"]) .required-course-event {
+  background-color: #2d5aa0 !important;
+  border-color: #1e3a6b !important;
+}
+
+body:not([class*="theme-"]) .elective-course-event {
+  background-color: #87ceeb !important;
+  border-color: #5ba3c7 !important;
+}
+
+/* 暗色主题 */
+.theme-dark .required-course-event {
+  background-color: #4a4a4a !important;
+  border-color: #333333 !important;
+}
+
+.theme-dark .elective-course-event {
+  background-color: #999999 !important;
+  border-color: #777777 !important;
+}
+
+/* 马卡龙主题 */
+.theme-macaron .required-course-event {
+  background-color: #8b4789 !important;
+  border-color: #6b356b !important;
+}
+
+.theme-macaron .elective-course-event {
+  background-color: #d4a5d4 !important;
+  border-color: #b385b3 !important;
+}
+
+/* 清新绿主题 */
+.theme-fresh-green .required-course-event {
+  background-color: #1e7e34 !important;
+  border-color: #0f4d1a !important;
+}
+
+.theme-fresh-green .elective-course-event {
+  background-color: #7dd87d !important;
+  border-color: #5ba35b !important;
+}
+
+/* 复古黄主题 */
+.theme-retro-yellow .required-course-event {
+  background-color: #8b4513 !important;
+  border-color: #6b3510 !important;
+}
+
+.theme-retro-yellow .elective-course-event {
+  background-color: #d4b483 !important;
+  border-color: #b3946b !important;
+}
+
+/* 悬停效果 */
+.required-course-event:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.elective-course-event:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  opacity: 1 !important;
+}
+
+/* 必修课程特殊标识 */
+.required-course-event::before {
+  content: "★";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  z-index: 10;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* 选修课程特殊标识 */
+.elective-course-event::before {
+  content: "○";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  z-index: 10;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* 确保事件有相对定位以便显示标识 */
+.fc-event {
+  position: relative !important;
 }
 
 .custom-event-content .event-time {
