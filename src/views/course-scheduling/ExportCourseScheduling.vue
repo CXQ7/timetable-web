@@ -1,17 +1,28 @@
 <template>
-  <el-dialog title="导出课表" width="520px"
-             :close-on-click-modal="false"
-             :close-on-press-escape="false"
-             :visible.sync="dialogVisible"
-             :before-close="handleClose">
-    <el-form ref="form" :model="form" :rules="rules" label-width="90px" class="tams-form-container">
+  <el-dialog
+    title="导出课表"
+    width="520px"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    :visible.sync="dialogVisible"
+    :before-close="handleClose"
+  >
+    <el-form
+      ref="form"
+      :model="form"
+      :rules="rules"
+      label-width="90px"
+      class="tams-form-container"
+    >
       <el-form-item label="日期范围" prop="dates">
-        <el-date-picker :clearable="false"
-                        v-model="form.dates"
-                        :picker-options="pickerOptions"
-                        type="daterange"
-                        range-separator="至"
-                        class="form-item">
+        <el-date-picker
+          :clearable="false"
+          v-model="form.dates"
+          :picker-options="pickerOptions"
+          type="daterange"
+          range-separator="至"
+          class="form-item"
+        >
         </el-date-picker>
       </el-form-item>
       <el-form-item label="工作表名称" prop="sheetNamingType">
@@ -23,8 +34,18 @@
         <el-radio v-model="form.isShowWeek" :label="0">不显示</el-radio>
       </el-form-item>
       <el-form-item label="指定教室" prop="classroomId">
-        <el-select :clearable="true" v-model="currentClassroom" value-key="id" class="form-item">
-          <el-option v-for="item in classroomData" :key="item.id" :label="item.name" :value="item">
+        <el-select
+          :clearable="true"
+          v-model="currentClassroom"
+          value-key="id"
+          class="form-item"
+        >
+          <el-option
+            v-for="item in classroomData"
+            :key="item.id"
+            :label="item.name"
+            :value="item"
+          >
           </el-option>
         </el-select>
       </el-form-item>
@@ -37,7 +58,9 @@
     </el-form>
     <div slot="footer" class="dialog-footer">
       <el-button @click="close">取消</el-button>
-      <el-button type="primary" :loading="submitBtnLoading" @click="submit">确定</el-button>
+      <el-button type="primary" :loading="submitBtnLoading" @click="submit"
+        >确定</el-button
+      >
     </div>
   </el-dialog>
 </template>
@@ -78,7 +101,7 @@ export default {
   },
   computed: {
     ...mapState({
-      userInfo: state => state.authentication.userInfo
+      userInfo: (state) => state.authentication.userInfo
     })
   },
   methods: {
@@ -86,12 +109,13 @@ export default {
     init () {
       this.$set(this.form, 'sheetNamingType', 1)
       this.$set(this.form, 'isShowWeek', 1)
-      this.GetClassroomRefList().then(res => {
-        if (res) {
-          this.classroomData = res
-        }
-      }).catch(() => {
-      })
+      this.GetClassroomRefList()
+        .then((res) => {
+          if (res) {
+            this.classroomData = res
+          }
+        })
+        .catch(() => {})
     },
     resetData () {
       this.$refs.form.resetFields()
@@ -110,27 +134,52 @@ export default {
       this.dialogVisible = false
     },
     submit () {
-      this.$refs.form.validate(valid => {
+      this.$refs.form.validate((valid) => {
         if (valid) {
-          let url = 'course-scheduling/export/excel' +
-            '?startDate=' + moment(this.form.dates[0]).format('YYYY-MM-DD') +
-            '&endDate=' + moment(this.form.dates[1]).format('YYYY-MM-DD') +
-            '&sheetNamingType=' + this.form.sheetNamingType +
-            '&isShowWeek=' + this.form.isShowWeek +
-            '&username=' + encodeURIComponent(this.userInfo?.username || '')
+          // 构建正确的下载URL
+          const baseUrl =
+            process.env.VUE_APP_BASE_URL || 'http://106.54.214.94:12010'
+
+          // 构建参数对象
+          const params = {
+            startDate: moment(this.form.dates[0]).format('YYYY-MM-DD'),
+            endDate: moment(this.form.dates[1]).format('YYYY-MM-DD'),
+            sheetNamingType: this.form.sheetNamingType,
+            isShowWeek: this.form.isShowWeek,
+            username: this.userInfo?.username || ''
+          }
 
           if (this.currentClassroom && this.currentClassroom.id) {
-            url += '&classroomId=' + this.currentClassroom.id
-            url += '&classroomName=' + this.currentClassroom.name
+            params.classroomId = this.currentClassroom.id
+            params.classroomName = this.currentClassroom.name
           }
           if (this.form.title) {
-            url += '&title=' + this.form.title
+            params.title = this.form.title
           }
           if (this.form.filename) {
-            url += '&filename=' + this.form.filename
+            params.filename = this.form.filename
           }
 
-          window.location.href = url
+          // 构建查询字符串，确保所有参数都正确编码
+          const queryString = Object.keys(params)
+            .map(
+              (key) =>
+                `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
+            )
+            .join('&')
+
+          // 构建完整的URL
+          const downloadUrl = `${baseUrl}/course-scheduling/export/excel?${queryString}`
+
+          console.log('Excel导出URL:', downloadUrl)
+
+          // 创建隐藏的下载链接，避免页面跳转
+          const link = document.createElement('a')
+          link.href = downloadUrl
+          link.style.display = 'none'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
 
           this.$emit('on-success')
           this.dialogVisible = false
@@ -151,7 +200,7 @@ export default {
 </script>
 
 <style scoped>
-  .form-item {
-    width: 300px;
-  }
+.form-item {
+  width: 300px;
+}
 </style>

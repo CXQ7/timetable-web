@@ -83,12 +83,14 @@ export default {
           this.loginLoading = true
           this.$store
             .dispatch('Login', this.loginForm)
-            .then(() => {
+            .then((userInfo) => {
               // 登录成功后设置记住我标记
               if (this.checked) {
                 localStorage.setItem('rememberMe', 'true')
               }
-              this.$message.success('登录成功')
+              // 显示包含用户名的成功提示
+              const username = userInfo?.username || this.loginForm.username
+              this.$message.success(`欢迎回来，${username}！`)
               this.$router.push('/main')
             })
             .catch((err) => {
