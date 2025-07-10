@@ -143,6 +143,7 @@ export default {
             })
           }
           if (!settings.inSite && settings.email) {
+            console.log('[轮询] 站内提醒未开启，检查邮箱提醒')
             this.GetUpcomingReminders({
               username: this.userInfo.username,
               limit: 1
@@ -215,6 +216,8 @@ export default {
 }
 
 .main-menu-item {
+  display: flex;
+  justify-content: center;
   margin: 8px 12px;
   border-radius: 12px;
   font-weight: 600;
@@ -394,4 +397,5 @@ export default {
     padding: 15px 20px;
   }
 }
+
 </style>

@@ -33,7 +33,7 @@
       <el-table stripe border :data="reminders" style="width: 100%">
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="message" label="提醒内容" />
-        <el-table-column prop="remindTime" label="提醒时间" width="180" />
+        <el-table-column prop="remindTime" label="提醒时间" width="200" />
       </el-table>
       <el-empty v-if="!reminders.length" description="暂无提醒" />
     </div>
@@ -71,16 +71,13 @@ export default {
     init () {
       console.log('[init] 获取提醒设置中...')
       this.GetReminderSettings({ username: this.userInfo.username })
-        .then(res => {
+        .then((res) => {
           console.log('[init] 获取到的提醒设置：', res)
           this.settings = res
           if (this.settings.inSite) {
             console.log('[init] 开启了站内提醒，加载提醒数据...')
             this.loadReminders()
           }
-        })
-        .finally(() => {
-          this.clearReminderDot()
         })
     },
     // 切换设置时调用
@@ -120,7 +117,7 @@ export default {
       console.log('[loadReminders] 开始拉取即将提醒数据')
       this.loading = true
       this.GetUpcomingReminders({ username: this.userInfo.username, limit: 1 })
-        .then(res => {
+        .then((res) => {
           console.log('[loadReminders] 获取到提醒数据：', res)
           this.reminders = res
           // 有新提醒时，设置红点
@@ -131,6 +128,7 @@ export default {
         })
         .finally(() => {
           this.loading = false
+          this.clearReminderDot()
         })
     },
     // 用户点击页面时，消除红点
