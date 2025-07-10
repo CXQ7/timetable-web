@@ -245,8 +245,14 @@ export default {
         fixedWeekCount: false,
         // 月视图，是否显示非本月日期
         showNonCurrentDates: false,
-        // 月视图，限制每天显示最大事件数，不包括+more链接，false 全部显示，true 限制为日单元格的高度，number 限制为指定行数高度
-        dayMaxEvents: true,
+        // 月视图：最多展示3条课程，超过则显示"+" 并弹出下拉（popover）
+        dayMaxEvents: 3,
+        // 点击"更多"直接跳转到当日(日视图)以显示全部课程详情
+        moreLinkClick: 'timeGridDay',
+        // 自定义溢出链接文本，统一显示为"更多"
+        moreLinkContent: function () {
+          return { html: '<span style="cursor:pointer;">更多</span>' }
+        },
         // 与dayMaxEvents类似，区别为包括+more链接
         // dayMaxEventRows: true,
         // 是否可拖拽
@@ -570,8 +576,11 @@ export default {
     },
     dayHeaderContent (info) {
       if (info.view.type === 'dayGridMonth') {
+        // 显示为"星期一"到"星期日"
+        const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+        const dayIdx = info.date.getDay()
         return {
-          html: `<div class="fc-scrollgrid-sync-inner"><a class="fc-col-header-cell-cushion">${info.text}</a></div>`
+          html: `<div class="fc-scrollgrid-sync-inner"><a class="fc-col-header-cell-cushion">${weekDays[dayIdx]}</a></div>`
         }
       } else if (info.view.type === 'timeGridWeek') {
         // 自定义日期格式: 6月30 星期一 (不显示课程数量)
@@ -894,6 +903,9 @@ export default {
       }
       if (viewType === 'timeGridDay') {
         eventElement.innerHTML = `<div class="event-time">${startTime} - ${endTime}</div><div class="event-details-grid">${detailsHtml}</div>`
+      } else if (viewType === 'dayGridMonth') {
+        // 月视图简化为横条显示课程名称
+        eventElement.innerHTML = `<div class="month-event-bar"><span class="month-course-name">${extendedProps.courseName || ''}</span></div>`
       } else {
         eventElement.innerHTML = `<div class="event-time">${startTime} - ${endTime}</div><div class="event-details">${detailsHtml}</div>`
       }
@@ -2257,6 +2269,12 @@ body:not([class*="theme-"]) .fc-next-button:disabled {
 .fc-timeGridDay-view .fc-event {
   position: absolute !important;
 }
+
+.fc-dayGridMonth-view .fc-event {
+  position: relative !important;
+  width: 100% !important;
+}
+
 /* dayGrid(例如月视图) 保持默认相对定位 */
 
 /* 周视图：让事件内容随高度拉伸 */
@@ -2285,5 +2303,34 @@ body:not([class*="theme-"]) .fc-next-button:disabled {
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-around !important;
+}
+
+.fc-dayGridMonth-view .custom-event-content {
+  padding: 0 2px;
+}
+
+.month-event-bar {
+  width: 100%;
+  height: 20px;
+  line-height: 20px;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: #fff;
+}
+
+.month-course-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fc-daygrid-day-number {
+  font-size: 16px !important;
+  font-weight: bold !important;
+  color: #409EFF !important;
+  margin: 4px 0 2px 4px !important;
+  display: inline-block !important;
 }
 </style>
