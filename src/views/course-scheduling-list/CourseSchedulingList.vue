@@ -53,7 +53,8 @@
       <el-button slot="reference" type="danger" size="small" :disabled="!(idList && idList.length > 0)" @click="remove">删除</el-button>
     </div>
     <el-table stripe border :data="data" @selection-change="handleSelectionChange" :row-class-name="getRowClassName">
-      <el-table-column type="selection" width="40"></el-table-column>
+      <!-- <el-table-column type="selection" width="40"></el-table-column> -->
+      <el-table-column type="selection" width="55" align="center"></el-table-column>
       <el-table-column type="index" label="序号" width="80"></el-table-column>
       <el-table-column prop="date" label="日期" width="140"></el-table-column>
       <el-table-column prop="attendTime" label="上课时间" width="120"></el-table-column>
