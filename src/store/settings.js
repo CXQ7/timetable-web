@@ -113,7 +113,7 @@ const actions = {
   },
 
   // 保存课表设置
-  async SaveScheduleSettings ({ commit, state }, settings) {
+  async SaveScheduleSettings ({ commit, state, rootState }, settings) {
     try {
       console.log('Store收到的设置数据:', JSON.stringify(settings, null, 2))
 
@@ -129,7 +129,8 @@ const actions = {
       try {
         const settingsData = {
           scheduleSettings: state.scheduleSettings,
-          classTimes: state.classTimes
+          classTimes: state.classTimes,
+          username: rootState.authentication.userInfo?.username // 添加username参数
         }
 
         console.log(
@@ -157,7 +158,7 @@ const actions = {
   },
 
   // 保存上课时间设置
-  async SaveClassTimes ({ commit, state }, classTimes) {
+  async SaveClassTimes ({ commit, state, rootState }, classTimes) {
     try {
       commit('SET_CLASS_TIMES', classTimes)
 
@@ -168,7 +169,8 @@ const actions = {
       try {
         const settingsData = {
           scheduleSettings: state.scheduleSettings,
-          classTimes: state.classTimes
+          classTimes: state.classTimes,
+          username: rootState.authentication.userInfo?.username // 添加username参数
         }
 
         // 先尝试更新，如果失败则保存
@@ -191,7 +193,7 @@ const actions = {
   },
 
   // 添加上课时间段
-  async AddClassTime ({ commit, state }, classTime) {
+  async AddClassTime ({ commit, state, rootState }, classTime) {
     commit('ADD_CLASS_TIME', classTime)
     localStorage.setItem('classTimes', JSON.stringify(state.classTimes))
 
@@ -199,7 +201,8 @@ const actions = {
     try {
       const settingsData = {
         scheduleSettings: state.scheduleSettings,
-        classTimes: state.classTimes
+        classTimes: state.classTimes,
+        username: rootState.authentication.userInfo?.username // 添加username参数
       }
 
       try {
@@ -213,7 +216,7 @@ const actions = {
   },
 
   // 删除上课时间段
-  async RemoveClassTime ({ commit, state }, index) {
+  async RemoveClassTime ({ commit, state, rootState }, index) {
     commit('REMOVE_CLASS_TIME', index)
     localStorage.setItem('classTimes', JSON.stringify(state.classTimes))
 
@@ -221,7 +224,8 @@ const actions = {
     try {
       const settingsData = {
         scheduleSettings: state.scheduleSettings,
-        classTimes: state.classTimes
+        classTimes: state.classTimes,
+        username: rootState.authentication.userInfo?.username // 添加username参数
       }
 
       try {

@@ -442,15 +442,61 @@ export default {
     saveUserSettings () {
       this.loading = true
 
+      // 邮箱验证
+      if (!this.userForm.email || this.userForm.email.trim() === '') {
+        this.$message.error('邮箱不能为空！')
+        this.loading = false
+        return
+      }
+
+      // 邮箱格式验证
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(this.userForm.email.trim())) {
+        this.$message.error('请输入正确的邮箱格式！')
+        this.loading = false
+        return
+      }
+
+      // 获取当前存储的用户信息进行对比
+      const currentUserInfo = this.$store.state.authentication.userInfo
+
+      // 检查是否有修改
+      const changes = []
+      let hasChanges = false
+
+      // 检查邮箱是否修改
+      if (currentUserInfo.email !== this.userForm.email.trim()) {
+        changes.push('邮箱')
+        hasChanges = true
+      }
+
+      // 检查头像是否修改
+      const hasAvatarChange =
+        this.avatarPreview ||
+        (this.userForm.avatar_url &&
+          this.userForm.avatar_url !== currentUserInfo.avatar_url)
+      if (hasAvatarChange) {
+        changes.push('头像')
+        hasChanges = true
+      }
+
+      // 如果没有任何修改，提示用户
+      if (!hasChanges) {
+        this.$message.info('没有检测到任何修改，无需保存')
+        this.loading = false
+        return
+      }
+
       // 准备发送给后端的数据，转换字段名以匹配后端期望的格式
       const updateData = {
         username: this.userForm.username,
-        email: this.userForm.email,
+        email: this.userForm.email.trim(),
         avatarUrl: this.userForm.avatar_url // 转换字段名：avatar_url -> avatarUrl
       }
 
       console.log('=== 保存用户设置开始 ===')
       console.log('发送给后端的用户更新数据:', updateData)
+      console.log('检测到的修改项:', changes)
       console.log('头像数据详情:')
       if (updateData.avatarUrl) {
         console.log('  - 数据类型:', typeof updateData.avatarUrl)
@@ -478,16 +524,22 @@ export default {
           const sentAvatarUrl = updateData.avatarUrl
           const returnedAvatarUrl = updatedUserInfo.avatar_url
 
+          // 构建成功提示消息
+          let successMessage = '用户设置保存成功'
+          if (changes.length > 0) {
+            successMessage += '，已更新' + changes.join('、')
+          }
+
           if (sentAvatarUrl && sentAvatarUrl.startsWith('data:image/')) {
             if (
               returnedAvatarUrl &&
               returnedAvatarUrl.startsWith('data:image/')
             ) {
-              this.$message.success('用户设置保存成功，头像已更新')
+              this.$message.success(successMessage)
               console.log('头像数据正确保存到后端')
             } else {
               this.$message({
-                message: '用户设置保存成功，但后端可能未正确保存头像数据',
+                message: successMessage + '，但后端可能未正确保存头像数据',
                 type: 'warning',
                 duration: 5000
               })
@@ -508,7 +560,7 @@ export default {
               }
             }
           } else {
-            this.$message.success('用户设置保存成功')
+            this.$message.success(successMessage)
           }
 
           // 使用返回的用户信息更新本地存储
