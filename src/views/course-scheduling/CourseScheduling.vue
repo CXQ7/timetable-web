@@ -222,6 +222,16 @@ export default {
         slotMinTime: '07:00',
         slotMaxTime: '21:00',
         slotDuration: '00:15:00',
+        // 确保事件对齐到时间槽
+        snapDuration: '00:15:00',
+        // 事件显示设置
+        displayEventTime: true,
+        displayEventEnd: true,
+        // 事件高度和对齐设置
+        eventMinHeight: 15,
+        forceEventDuration: true,
+        // 事件内容渲染设置
+        eventDisplay: 'block',
         // 是否显示第几周
         // weekNumbers: true,
         // weekText: '周',
@@ -256,15 +266,27 @@ export default {
               // 月视图
               return `${start.year()}年 ${start.month() + 1}月`
             } else if (date.view.type === 'timeGridDay' || date.view.type === 'dayGridDay') {
-              // 日视图
-              return `${start.year()}年 ${start.month() + 1}月${start.date()}日`
+              // 日视图 - 只显示当前日期，不显示日期范围
+              // 使用当前日期而不是日期范围
+              const currentDate = moment(date.date || date.start)
+              return `${currentDate.year()}年${currentDate.month() + 1}月${currentDate.date()}日`
             } else if (date.view.type === 'timeGridWeek' || date.view.type === 'dayGridWeek' || date.view.type === 'listWeek') {
-              // 周视图
-              return `${start.year()}年 ${start.month() + 1}月${start.date()}日 - ${end.month() + 1}月${end.date()}日`
+              // 周视图 - 确保开始日期在前，结束日期在后
+              // 检查日期顺序，确保开始日期小于结束日期
+              if (start.isAfter(end)) {
+                // 如果开始日期在结束日期之后，交换它们
+                return `${end.year()}年 ${end.month() + 1}月${end.date()}日 - ${start.month() + 1}月${start.date()}日`
+              } else {
+                return `${start.year()}年 ${start.month() + 1}月${start.date()}日 - ${end.month() + 1}月${end.date()}日`
+              }
             }
           }
-          // 默认周视图
-          return `${start.year()}年 ${start.month() + 1}月${start.date()}日 - ${end.month() + 1}月${end.date()}日`
+          // 默认周视图 - 同样确保日期顺序正确
+          if (start.isAfter(end)) {
+            return `${end.year()}年 ${end.month() + 1}月${end.date()}日 - ${start.month() + 1}月${start.date()}日`
+          } else {
+            return `${start.year()}年 ${start.month() + 1}月${start.date()}日 - ${end.month() + 1}月${end.date()}日`
+          }
         },
         buttonText: {
           today: '今天',
@@ -456,11 +478,24 @@ export default {
                   // 选修课程使用浅色
                   eventColor = this.getElectiveColor(eventColor)
                 }
+                // 确保时间格式正确
+                const startDateTime = moment(item.date + ' ' + item.attendTime)
+                const endDateTime = moment(item.date + ' ' + item.finishTime)
+                // 调试信息：检查时间格式
+                console.log('课程时间信息:', {
+                  courseName: item.courseName,
+                  date: item.date,
+                  attendTime: item.attendTime,
+                  finishTime: item.finishTime,
+                  startDateTime: startDateTime.format('YYYY-MM-DD HH:mm:ss'),
+                  endDateTime: endDateTime.format('YYYY-MM-DD HH:mm:ss'),
+                  isValid: startDateTime.isValid() && endDateTime.isValid()
+                })
                 return {
                   id: item.id,
                   title: `${item.courseName} - ${item.classroomName} - ${item.teacherName}`,
-                  start: item.date + ' ' + item.attendTime,
-                  end: item.date + ' ' + item.finishTime,
+                  start: startDateTime.isValid() ? startDateTime.toISOString() : item.date + ' ' + item.attendTime,
+                  end: endDateTime.isValid() ? endDateTime.toISOString() : item.date + ' ' + item.finishTime,
                   extendedProps: {
                     ...item,
                     courseName: item.courseName,
@@ -552,8 +587,8 @@ export default {
                 </div>`
         }
       } else if (info.view.type === 'timeGridDay') {
-        // 自定义日期格式: 6月30 星期一 (保留日视图的课程数量显示)
-        const dateText = moment(info.date).format('M月D日 dddd')
+        // 自定义日期格式: 仅显示年月日，不显示星期几
+        const dateText = moment(info.date).format('YYYY年M月D日')
         return {
           html: `<div class="fc-scrollgrid-sync-inner">
                      <a class="fc-col-header-cell-cushion">${dateText}</a>
@@ -1461,17 +1496,16 @@ body:not([class*="theme-"]) .el-form-item__label {
   font-size: 16px !important;
 }
 
-/* 自定义事件显示样式 */
+/* 自定义事件显示样式 - 简化以允许自然高度 */
 .custom-event-content {
   padding: 6px 8px;
-  height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   font-size: 15px;
   line-height: 1.4;
   word-wrap: break-word;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* 课程类型标签样式 */
@@ -1662,8 +1696,10 @@ body:not([class*="theme-"]) .elective-course-event {
 
 /* 确保事件有相对定位以便显示标识 */
 .fc-event {
-  position: relative !important;
+  position: absolute !important;
 }
+
+/* 删除过度的时间网格事件样式，让FullCalendar自然计算高度 */
 
 .custom-event-content .event-time {
   text-align: center;
@@ -1678,11 +1714,9 @@ body:not([class*="theme-"]) .elective-course-event {
 }
 
 .custom-event-content .event-details {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  min-height: 0;
+  gap: 2px;
 }
 
 .custom-event-content .event-details > div {
@@ -1755,7 +1789,7 @@ body:not([class*="theme-"]) .elective-course-event {
   font-size: 15px;
 }
 
-/* 日视图特殊布局 - 网格分布 */
+/* 日视图特殊布局 - 简化网格分布 */
 .timeGridDay-view .custom-event-content {
   padding: 8px 10px;
 }
@@ -1766,7 +1800,6 @@ body:not([class*="theme-"]) .elective-course-event {
   grid-template-rows: auto auto;
   gap: 6px;
   margin-top: 6px;
-  height: calc(100% - 40px);
 }
 
 .timeGridDay-view .event-details-grid > div {
@@ -1876,20 +1909,18 @@ body:not([class*="theme-"]) .elective-course-event {
   border-top-color: rgba(255, 255, 255, 0.4);
 }
 
-/* 增强事件的可读性 */
+/* 简化事件样式，避免干扰高度计算 */
 .fc-event {
   border-radius: 6px !important;
   border-width: 1px !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-  transition: all 0.2s ease !important;
 }
 
 .fc-event:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-  transform: translateY(-1px) !important;
 }
 
-/* 确保事件内容不会被截断 */
+/* 简化事件内容样式，让FullCalendar自行计算高度 */
 .fc-event-main {
   padding: 0 !important;
 }
@@ -2219,5 +2250,40 @@ body:not([class*="theme-"]) .fc-next-button:disabled {
   border-bottom: 10px solid #e74c3c;
   transform: translateX(-50%);
   z-index: 12;
+}
+
+/* 仅在时间轴视图使用绝对定位，避免月视图事件重叠 */
+.fc-timeGridWeek-view .fc-event,
+.fc-timeGridDay-view .fc-event {
+  position: absolute !important;
+}
+/* dayGrid(例如月视图) 保持默认相对定位 */
+
+/* 周视图：让事件内容随高度拉伸 */
+.fc-timeGridWeek-view .custom-event-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.fc-timeGridWeek-view .custom-event-content .event-details {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-around !important;
+}
+
+/* 日视图：让事件内容随高度拉伸 */
+.fc-timeGridDay-view .custom-event-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.fc-timeGridDay-view .custom-event-content .event-details {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-around !important;
 }
 </style>
