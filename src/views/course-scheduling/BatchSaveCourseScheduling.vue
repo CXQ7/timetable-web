@@ -1,99 +1,138 @@
 <template>
   <div>
-    <el-dialog title="新增" width="850px"
+    <el-dialog title="批量新增" width="850px"
                :close-on-click-modal="false"
                :close-on-press-escape="false"
-               :visible.sync="dialogVisible"
+               :visible="visible"
                :before-close="handleClose" >
-      <el-form id="batch-save-course-scheduling-form" ref="form" :model="form" :rules="rules" label-width="100px" inline class="form-container">
-        <el-form-item label="教室" prop="classroomId">
-          <el-select v-model="form.classroomId" class="form-item" @change="classroomChange" placeholder="请选择教室">
-            <el-option
-              v-for="item in classrooms"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id">
-            </el-option>
-            <el-option key="add-new-classroom" :value="'add-new-classroom'" style="color: #409EFF;">
-              <i class="el-icon-plus"></i> 新增教室
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <br/>
-        <el-form-item label="课程" prop="courseId">
-          <el-select v-model="currentCourse" value-key="id" class="form-item" @change="courseChange" placeholder="请选择课程">
-            <el-option
-              v-for="item in courses"
-              :key="item.id"
-              :label="item.name"
-              :value="item">
-              <span>{{ item.name }}</span>
-              <span style="float: right; color: #8492a6; font-size: 12px;">
-                {{ (item.courseType === 1 || item.courseType === '1') ? '必修' : (item.courseType === 2 || item.courseType === '2') ? '选修' : '必修' }}
-              </span>
-            </el-option>
-            <el-option key="add-new-course" :value="'add-new-course'" style="color: #409EFF;">
-              <i class="el-icon-plus"></i> 新增课程
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="老师" prop="teacherId">
-          <el-select v-model="form.teacherId" class="form-item" @change="teacherChange" placeholder="请选择老师">
-            <el-option
-              v-for="item in teachers"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id">
-            </el-option>
-            <el-option key="add-new-teacher" :value="'add-new-teacher'" style="color: #409EFF;">
-              <i class="el-icon-plus"></i> 新增老师
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="上课日期" prop="dates">
-          <el-date-picker :clearable="false"
-                          v-model="form.dates"
-                          :picker-options="datesPickerOptions"
-                          type="daterange"
-                          range-separator="至" style="width: 610px;">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="上课周期" prop="weekList">
-          <el-checkbox-group v-model="form.weekList" :min="1" size="small">
-            <el-checkbox border v-for="item in weekOptions" :key="item.label" :label="item.label" :checked="item.checked">{{item.name}}</el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-        <br/>
-        <el-form-item label="上课时间" prop="attendTime">
-          <el-time-select :clearable="false"
-                          style="width: 130px"
-                          v-model="form.attendTime"
-                          :disabled="!(form.courseId&&form.courseId>0)"
-                          :picker-options="timePickerOptions"
-                          @change="calcFinishTime">
-          </el-time-select>
-        </el-form-item>
-        <el-form-item label="课程时长">
-          <el-input-number style="width: 130px"
-                           v-model="courseDuration"
-                           :step="15"
-                           :min="0"
-                           :max="360"
-                           :disabled="!(form.courseId&&form.courseId>0)"
-                           @change="calcFinishTime"></el-input-number>
-        </el-form-item>
-        <el-form-item label="下课时间" prop="finishTime">
-          <el-input style="width: 130px" v-model="form.finishTime" :disabled="!(form.courseId&&form.courseId>0)" readonly></el-input>
-        </el-form-item>
-        <br/>
-        <el-form-item label="备注" style="width: 100%;">
-          <el-input v-model="form.remarks"
-                    type="textarea"
-                    :rows="3"
-                    placeholder="请输入备注信息、待办事项或注意事项"
-                    style="width: 100%;">
-          </el-input>
-        </el-form-item>
+      <el-form id="batch-save-course-scheduling-form" ref="form" :model="form" :rules="rules" label-width="100px" class="form-container">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="教室" prop="classroomId">
+              <el-select v-model="form.classroomId" @change="classroomChange" placeholder="请选择教室" style="width: 100%;">
+                <el-option
+                  v-for="item in classrooms"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+                <el-option key="add-new-classroom" :value="'add-new-classroom'" style="color: #409EFF;">
+                  <i class="el-icon-plus"></i> 新增教室
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="课程" prop="courseId">
+              <el-select v-model="currentCourse" value-key="id" @change="courseChange" placeholder="请选择课程" style="width: 100%;">
+                <el-option
+                  v-for="item in courses"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item">
+                  <span>{{ item.name }}</span>
+                  <span style="float: right; color: #8492a6; font-size: 12px;">
+                    {{ (item.courseType === 1 || item.courseType === '1') ? '必修' : (item.courseType === 2 || item.courseType === '2') ? '选修' : '必修' }}
+                  </span>
+                </el-option>
+                <el-option key="add-new-course" :value="'add-new-course'" style="color: #409EFF;">
+                  <i class="el-icon-plus"></i> 新增课程
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="老师" prop="teacherId">
+              <el-select v-model="form.teacherId" @change="teacherChange" placeholder="请选择老师" style="width: 100%;">
+                <el-option
+                  v-for="item in teachers"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+                <el-option key="add-new-teacher" :value="'add-new-teacher'" style="color: #409EFF;">
+                  <i class="el-icon-plus"></i> 新增老师
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="上课日期" prop="dates">
+              <el-date-picker :clearable="false"
+                              v-model="form.dates"
+                              :picker-options="datesPickerOptions"
+                              type="daterange"
+                              range-separator="至"
+                              style="width: 100%;">
+              </el-date-picker>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="上课周期" prop="weekList">
+              <el-checkbox-group v-model="form.weekList" :min="1" size="small">
+                <el-checkbox
+                  border
+                  v-for="item in weekOptions"
+                  :key="item.label"
+                  :label="item.label"
+                  @change="handleWeekChange">
+                  {{item.name}}
+                </el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="上课时间" prop="attendTime">
+              <el-time-select :clearable="false"
+                              v-model="form.attendTime"
+                              :disabled="!(form.courseId&&form.courseId>0)"
+                              :picker-options="timePickerOptions"
+                              @change="calcFinishTime"
+                              style="width: 100%;">
+              </el-time-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="课程时长(分钟)">
+              <el-input-number v-model="courseDuration"
+                               :step="15"
+                               :min="0"
+                               :max="360"
+                               :disabled="!(form.courseId&&form.courseId>0)"
+                               @change="calcFinishTime"
+                               style="width: 100%;">
+              </el-input-number>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="下课时间" prop="finishTime">
+              <el-input v-model="form.finishTime"
+                        :disabled="!(form.courseId&&form.courseId>0)"
+                        readonly
+                        style="width: 100%;">
+              </el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="备注">
+              <el-input v-model="form.remarks"
+                        type="textarea"
+                        :rows="3"
+                        placeholder="请输入备注信息、待办事项或注意事项"
+                        style="width: 100%;"
+                        @input="onRemarksChange">
+              </el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="close">取消</el-button>
@@ -148,14 +187,16 @@ export default {
   },
   data () {
     return {
-      dialogVisible: false,
       tipDialogVisible: false,
       errMsg: '',
       errData: [],
       classrooms: [],
       courses: [],
       teachers: [],
-      form: {},
+      form: {
+        weekList: [1, 2, 3, 4, 5], // 默认工作日
+        remarks: '' // 确保备注字段存在
+      },
       currentCourse: null,
       courseDuration: 0,
       weekOptions: [
@@ -244,7 +285,14 @@ export default {
   methods: {
     ...mapActions(['GetClassroomRefList', 'GetCourseRefList', 'GetTeacherRefList', 'BatchSaveCourseScheduling']),
     init () {
-      this.form.weekList = [1, 2, 3, 4, 5]
+      // 确保form对象有weekList属性
+      if (!this.form.weekList) {
+        this.$set(this.form, 'weekList', [1, 2, 3, 4, 5])
+      }
+      // 确保form对象有remarks属性
+      if (!this.form.remarks) {
+        this.$set(this.form, 'remarks', '')
+      }
       this.GetClassroomRefList().then(res => {
         if (res) {
           this.classrooms = res
@@ -264,12 +312,19 @@ export default {
       }).catch(() => {
       })
     },
+    handleWeekChange (value) {
+      // 强制更新weekList，确保响应式
+      this.$forceUpdate()
+      console.log('上课周期已更新:', this.form.weekList)
+    },
     resetData () {
       this.$refs.form.resetFields()
-      this.form = {}
+      this.form = {
+        weekList: [1, 2, 3, 4, 5], // 重置时保持默认值
+        remarks: '' // 确保备注字段存在
+      }
       this.courseDuration = 0
       this.currentCourse = null
-      this.form.weekList = [1, 2, 3, 4, 5]
       this.errMsg = ''
       this.errData = []
       this.classrooms = []
@@ -284,7 +339,6 @@ export default {
     close () {
       this.resetData()
       this.$emit('on-close')
-      this.dialogVisible = false
     },
     submit () {
       this.$refs.form.validate(valid => {
@@ -299,7 +353,6 @@ export default {
             this.submitBtnLoading = false
             this.resetData()
             this.$emit('on-success')
-            this.dialogVisible = false
           }).catch((err) => {
             if (err.code === 100001) {
               this.errMsg = err.msg
@@ -389,13 +442,16 @@ export default {
         }
       }).catch(() => {
       })
+    },
+    onRemarksChange (value) {
+      console.log('备注内容已更新:', value)
+      console.log('当前form.remarks:', this.form.remarks)
     }
   },
   watch: {
     visible (val) {
       if (val) {
         this.init()
-        this.dialogVisible = val
       }
     }
   }

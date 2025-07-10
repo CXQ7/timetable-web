@@ -136,12 +136,21 @@ export default {
       console.log('文件信息:', {
         name: this.selectedFile.name,
         size: this.selectedFile.size,
-        type: this.selectedFile.raw.type
+        type: this.selectedFile.raw.type,
+        lastModified: new Date(this.selectedFile.raw.lastModified).toLocaleString()
       })
       console.log('用户名:', this.userInfo?.username || '')
       console.log('基础URL:', process.env.VUE_APP_BASE_URL || 'http://localhost:12011')
       console.log('完整请求URL:', (process.env.VUE_APP_BASE_URL || 'http://localhost:12011') + '/course-scheduling/import')
       console.log('请求方式: multipart/form-data')
+      console.log('FormData内容检查:')
+      for (const pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(`  ${pair[0]}: [File] ${pair[1].name} (${pair[1].size} bytes)`)
+        } else {
+          console.log(`  ${pair[0]}: ${pair[1]}`)
+        }
+      }
       console.log('========================')
 
       // 使用axios发送FormData
@@ -153,21 +162,70 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then(response => {
-        console.log('=== 导入课程调度响应信息 ===')
-        console.log('响应数据:', response)
-        console.log('========================')
-        this.$message.success('导入成功')
-        this.$emit('on-success')
+        // 检查响应数据，提供更详细的成功信息
+        if (response && response.data) {
+          const importResult = response.data
+          console.log('导入结果详情:', importResult)
+          // 根据导入结果显示不同的成功消息
+          if (typeof importResult === 'number') {
+            this.$message({
+              type: 'success',
+              message: `导入成功！共导入 ${importResult} 条课程记录`,
+              duration: 4000
+            })
+          } else if (importResult.success !== undefined) {
+            this.$message({
+              type: 'success',
+              message: `导入成功！共导入 ${importResult.success} 条课程记录`,
+              duration: 4000
+            })
+          } else {
+            this.$message({
+              type: 'success',
+              message: '课程导入成功！',
+              duration: 3000
+            })
+          }
+        } else {
+          this.$message({
+            type: 'success',
+            message: '课程导入成功！',
+            duration: 3000
+          })
+        }
+        // 触发成功回调，让父组件刷新数据
+        this.$emit('on-success', response.data)
         this.close()
       }).catch(error => {
         console.log('=== 导入课程调度错误信息 ===')
         console.log('错误:', error)
         console.log('========================')
         let errorMessage = '导入失败：'
-        // 检查是否是Excel格式错误
-        if (error.msg && error.msg.includes('Cannot get a STRING value from a NUMERIC cell')) {
+        // 检查是否是重复导入冲突
+        if (error.code === 100001 || (error.msg && error.msg.includes('冲突'))) {
+          // 处理冲突错误
+          this.$msgbox({
+            title: '导入冲突',
+            message: this.$createElement('div', {
+              style: 'text-align: left; line-height: 1.5;'
+            }, [
+              this.$createElement('p', { style: 'color: #f56c6c; font-weight: bold; margin-bottom: 10px;' }, '检测到课程时间冲突'),
+              this.$createElement('p', { style: 'margin-bottom: 10px;' }, error.msg || '部分课程与现有课程时间冲突，无法导入'),
+              this.$createElement('p', { style: 'margin-bottom: 10px;' }, '建议：'),
+              this.$createElement('ol', { style: 'margin-left: 20px;' }, [
+                this.$createElement('li', '检查Excel文件中的时间安排'),
+                this.$createElement('li', '确认是否存在重复的课程安排'),
+                this.$createElement('li', '如需覆盖现有课程，请先删除冲突的课程'),
+                this.$createElement('li', '或修改Excel文件中的时间安排后重新导入')
+              ]),
+              this.$createElement('p', { style: 'color: #909399; font-size: 12px; margin-top: 10px;' }, '提示：系统会自动检测同一时间段、同一教室的课程冲突')
+            ]),
+            type: 'warning',
+            confirmButtonText: '我知道了'
+          })
+        } else if (error.msg && error.msg.includes('Cannot get a STRING value from a NUMERIC cell')) {
+          // 处理Excel格式错误
           errorMessage = '导入失败：Excel文件格式错误！\n\n解决方案：\n1. 打开Excel文件\n2. 选中所有数据区域\n3. 右键 → 设置单元格格式 → 文本\n4. 保存文件后重新上传'
-          // 使用MessageBox显示详细错误信息
           this.$msgbox({
             title: 'Excel格式错误',
             message: this.$createElement('div', {
@@ -187,14 +245,29 @@ export default {
             confirmButtonText: '我知道了'
           })
         } else if (error.msg) {
+          // 处理其他已知错误
           errorMessage += error.msg
-          this.$message.error(errorMessage)
+          this.$message({
+            type: 'error',
+            message: errorMessage,
+            duration: 5000
+          })
         } else if (error.message) {
+          // 处理网络或其他错误
           errorMessage += error.message
-          this.$message.error(errorMessage)
+          this.$message({
+            type: 'error',
+            message: errorMessage,
+            duration: 5000
+          })
         } else {
+          // 处理未知错误
           errorMessage += '请检查网络连接和文件格式'
-          this.$message.error(errorMessage)
+          this.$message({
+            type: 'error',
+            message: errorMessage,
+            duration: 5000
+          })
         }
       }).finally(() => {
         this.uploading = false
