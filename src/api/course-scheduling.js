@@ -64,7 +64,7 @@ export const updateCourseSchedulingTimeById = (id, data) => {
 }
 
 export const removeCourseSchedulingById = (id, username) => {
-  console.log('删除课程API调用，ID:', id, '用户�?', username)
+  console.log('删除课程API调用，ID:', id, '用户�?', username)
   return axios({
     url: '/course-scheduling/' + id,
     method: 'delete',
@@ -73,7 +73,7 @@ export const removeCourseSchedulingById = (id, username) => {
 }
 
 export const removeCourseSchedulingByIdList = (data) => {
-  console.log('批量删除课程API调用，参�?', data)
+  console.log('批量删除课程API调用，参�?', data)
   return axios({
     url: '/course-scheduling/batch',
     method: 'delete',

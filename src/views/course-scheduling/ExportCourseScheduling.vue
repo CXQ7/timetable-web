@@ -1,10 +1,13 @@
 <template>
-  <el-dialog title="导出课程表" width="580px"
-             :close-on-click-modal="false"
-             :close-on-press-escape="false"
-             :visible.sync="dialogVisible"
-             :before-close="handleClose"
-             class="export-dialog">
+  <el-dialog
+    title="导出课程表"
+    width="580px"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    :visible.sync="dialogVisible"
+    :before-close="handleClose"
+    class="export-dialog"
+  >
     <div class="export-content">
       <!-- 说明信息 -->
       <el-alert
@@ -12,17 +15,24 @@
         type="info"
         :closable="false"
         show-icon
-        class="export-tips">
+        class="export-tips"
+      >
         <div slot="title">
           <i class="el-icon-info"></i>
-          <span style="margin-left: 8px;">导出说明</span>
+          <span style="margin-left: 8px">导出说明</span>
         </div>
         <p>• 选择日期范围导出指定时间段的课程安排</p>
         <p>• 支持按教室筛选，可导出特定教室的课表</p>
         <p>• 导出的Excel文件包含详细的课程信息</p>
       </el-alert>
 
-      <el-form ref="form" :model="form" :rules="rules" label-width="110px" class="export-form">
+      <el-form
+        ref="form"
+        :model="form"
+        :rules="rules"
+        label-width="110px"
+        class="export-form"
+      >
         <el-card class="form-section" shadow="never">
           <div slot="header" class="section-header">
             <i class="el-icon-date"></i>
@@ -37,7 +47,8 @@
               range-separator="至"
               start-placeholder="开始日期"
               end-placeholder="结束日期"
-              class="form-item">
+              class="form-item"
+            >
             </el-date-picker>
           </el-form-item>
 
@@ -79,12 +90,14 @@
               v-model="currentClassroom"
               value-key="id"
               class="form-item"
-              placeholder="选择教室（可选）">
+              placeholder="选择教室（可选）"
+            >
               <el-option
                 v-for="item in classroomData"
                 :key="item.id"
                 :label="item.name"
-                :value="item">
+                :value="item"
+              >
               </el-option>
             </el-select>
             <div class="field-tip">不选择则导出所有教室的课程</div>
@@ -96,7 +109,8 @@
               class="form-item"
               placeholder="请输入课表标题（可选）"
               maxlength="50"
-              show-word-limit>
+              show-word-limit
+            >
             </el-input>
             <div class="field-tip">将显示在导出文件的顶部</div>
           </el-form-item>
@@ -107,7 +121,8 @@
               class="form-item"
               placeholder="请输入文件名（可选）"
               maxlength="30"
-              show-word-limit>
+              show-word-limit
+            >
               <template slot="append">.xlsx</template>
             </el-input>
             <div class="field-tip">不填写将自动生成文件名</div>
@@ -125,9 +140,10 @@
         type="primary"
         :loading="submitBtnLoading"
         @click="submit"
-        size="medium">
+        size="medium"
+      >
         <i class="el-icon-download"></i>
-        {{ submitBtnLoading ? '正在导出...' : '开始导出' }}
+        {{ submitBtnLoading ? "正在导出..." : "开始导出" }}
       </el-button>
     </div>
   </el-dialog>
@@ -169,7 +185,7 @@ export default {
   },
   computed: {
     ...mapState({
-      userInfo: state => state.authentication.userInfo
+      userInfo: (state) => state.authentication.userInfo
     })
   },
   methods: {
@@ -177,12 +193,13 @@ export default {
     init () {
       this.$set(this.form, 'sheetNamingType', 1)
       this.$set(this.form, 'isShowWeek', 1)
-      this.GetClassroomRefList().then(res => {
-        if (res) {
-          this.classroomData = res
-        }
-      }).catch(() => {
-      })
+      this.GetClassroomRefList()
+        .then((res) => {
+          if (res) {
+            this.classroomData = res
+          }
+        })
+        .catch(() => {})
     },
     resetData () {
       this.$refs.form.resetFields()
@@ -201,20 +218,46 @@ export default {
       this.dialogVisible = false
     },
     submit () {
-      this.$refs.form.validate(valid => {
+      this.$refs.form.validate((valid) => {
         if (valid) {
           this.submitBtnLoading = true
 
-          let url = 'course-scheduling/export/excel' +
-            '?startDate=' + moment(this.form.dates[0]).format('YYYY-MM-DD') +
-            '&endDate=' + moment(this.form.dates[1]).format('YYYY-MM-DD') +
-            '&sheetNamingType=' + this.form.sheetNamingType +
-            '&isShowWeek=' + this.form.isShowWeek +
-            '&username=' + encodeURIComponent(this.userInfo?.username || '')
+          // 获取API基础URL
+          let baseURL
+          if (process.env.NODE_ENV === 'development') {
+            // 开发环境：优先使用环境变量，如果没有则使用代理路径
+            if (process.env.VUE_APP_BASE_URL) {
+              baseURL = process.env.VUE_APP_BASE_URL
+            } else {
+              // 使用当前访问的host + /api，通过开发服务器代理转发
+              baseURL =
+                window.location.protocol + '//' + window.location.host + '/api'
+            }
+          } else {
+            // 生产环境
+            baseURL =
+              process.env.VUE_APP_BASE_URL || 'http://106.54.214.94:12010'
+          }
+
+          let url =
+            baseURL +
+            '/course-scheduling/export/excel' +
+            '?startDate=' +
+            moment(this.form.dates[0]).format('YYYY-MM-DD') +
+            '&endDate=' +
+            moment(this.form.dates[1]).format('YYYY-MM-DD') +
+            '&sheetNamingType=' +
+            this.form.sheetNamingType +
+            '&isShowWeek=' +
+            this.form.isShowWeek +
+            '&username=' +
+            encodeURIComponent(this.userInfo?.username || '')
 
           if (this.currentClassroom && this.currentClassroom.id) {
             url += '&classroomId=' + this.currentClassroom.id
-            url += '&classroomName=' + encodeURIComponent(this.currentClassroom.name)
+            url +=
+              '&classroomName=' +
+              encodeURIComponent(this.currentClassroom.name)
           }
           if (this.form.title) {
             url += '&title=' + encodeURIComponent(this.form.title)
@@ -262,7 +305,7 @@ export default {
 
 <style scoped>
 .export-dialog {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .export-content {
