@@ -64,13 +64,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['GetCourseById', 'UpdateCourseById', 'GetEffectiveList']),
-    init () {
-      this.GetEffectiveList().then((res) => {
-        this.predefineColors = res
-      }).catch(() => {
-      })
-    },
+    ...mapActions(['GetCourseById', 'UpdateCourseById']),
     handleClose (done) {
       this.$refs.form.resetFields()
       this.$emit('on-close')

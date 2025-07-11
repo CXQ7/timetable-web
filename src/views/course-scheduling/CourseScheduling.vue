@@ -297,7 +297,7 @@ export default {
         buttonText: {
           today: '今天',
           month: '月',
-          week: '星期',
+          week: '周',
           day: '日',
           list: '周列表'
         },
